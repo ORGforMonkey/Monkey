@@ -70,7 +70,6 @@ public class StartActivity extends BaseGameActivity {
 	private BitmapTextureAtlas splashTextureAtlas;
 	private BitmapTextureAtlas mainLogoTextureAtlas;
 	private BitmapTextureAtlas main_LevelSelectButton_TextureAtlas;
-	private BitmapTextureAtlas levelSelectTextureAtlas;
 	private BitmapTextureAtlas levelMainTextureAtlas[] = new BitmapTextureAtlas[MAX_LEVEL];
 	private BitmapTextureAtlas mBitmapTextureAtlas[] = new BitmapTextureAtlas[10];
 
@@ -90,7 +89,8 @@ public class StartActivity extends BaseGameActivity {
 	private Scene mainLogoScene;
 	private Scene mainMenuScene;
 	private Scene levelSelectScene;
-	private Scene levelTileScene;			private float levelTileSceneVelocityX;
+//	private Scene levelTileScene;			private float levelTileSceneVelocityX;
+	private ScrollScene levelScrollScene;
 
 	private int presentState;
 	private int presentFocus;
@@ -280,9 +280,13 @@ public class StartActivity extends BaseGameActivity {
 
 				// level을 고르는 버튼들
 				
+				///////////////////for new Class/////////////////////
+				levelScrollScene = new ScrollScene(ScrollScene.SCROLL_IN_X,400*MAX_LEVEL,400);
+				/////////////////////////////////////////////////////
+/*				
 				levelTileScene = new Scene();
 				levelTileScene.setBackgroundEnabled(false);
-				
+*/
 				for (int i = 0; i < MAX_LEVEL; i++) {
 					levelMainSprite[i] = new Sprite(0, 0,
 							levelMainTextureRegion[i],
@@ -304,23 +308,34 @@ public class StartActivity extends BaseGameActivity {
 					float levelMainSprite_Y = 0;
 
 					levelMainSprite[i].setPosition(levelMainSprite_X, levelMainSprite_Y);
+					///////////////////for new Class/////////////////////
+					levelScrollScene.attachChild(levelMainSprite[i]);
+					/////////////////////////////////////////////////////
+/*
 					levelTileScene.attachChild(levelMainSprite[i]);
-					
+*/					
 					Text levelText = new Text(0, 0, mBasicFont, "level"+(i+1), ("level"+(i+1)).length(), vertexBufferObjectManager);
 					
 					float levelText_X = levelMainSprite_X + (levelMainSprite[i].getWidth() - levelText.getWidth())/2;
 					float levelText_Y = levelMainSprite_Y + (levelMainSprite[i].getHeight() - levelText.getHeight())/2;
 					
 					levelText.setPosition(levelText_X, levelText_Y);
-					levelTileScene.attachChild(levelText);
-
-					levelTileScene.registerTouchArea(levelMainSprite[i]);
-					levelSelectScene.registerTouchArea(levelMainSprite[i]);
 					
+					///////////////////for new Class/////////////////////
+					levelScrollScene.attachChild(levelText);
+					levelScrollScene.registerTouchArea(levelMainSprite[i]);
+					/////////////////////////////////////////////////////
+/*
+					levelTileScene.attachChild(levelText);
+					levelTileScene.registerTouchArea(levelMainSprite[i]);
+*/					
+
+					levelSelectScene.registerTouchArea(levelMainSprite[i]);
+										
 					
 				}
 
-				levelTileScene.setPosition(
+				levelScrollScene.setPosition(
 						100,
 						(CAMERA_HEIGHT-levelMainSprite[0].getHeight())/2);
 				
@@ -346,21 +361,18 @@ public class StartActivity extends BaseGameActivity {
 						// TODO Auto-generated method stub
 						if(presentState == STATE_LEVEL_SELECT){
 							pDistanceX/=1.25;
-							if(levelTileScene.getX() > 100){//오른쪽으로 너무 많이 스크롤
-								levelTileScene.setX(levelTileScene.getX()+pDistanceX/2);
-							}else if(levelTileScene.getX()+levelMainSprite[0].getWidth()*MAX_LEVEL < CAMERA_WIDTH-100){//왼쪽으로 너무 많이 스크롤
-								levelTileScene.setX(levelTileScene.getX()+pDistanceX/2);								
-							}else{//정상적인경우
-								levelTileScene.setX(levelTileScene.getX()+pDistanceX);
-							}
-							
-							levelTileSceneVelocityX = pDistanceX;
+							///////////////////for new Class/////////////////////
+							levelScrollScene.scroll(pDistanceX);
+							/////////////////////////////////////////////////////
 							
 						}
 					}
 				});
 
-				levelSelectScene.attachChild(levelTileScene);
+				///////////////////for new Class/////////////////////
+				levelScrollScene.setPosition(100, (CAMERA_HEIGHT-levelScrollScene.getHeight())/2);
+				levelSelectScene.attachChild(levelScrollScene.getScene());
+				/////////////////////////////////////////////////////
 				levelSelectScene.setTouchAreaBindingOnActionDownEnabled(true);
 
 				mEngine.setScene(levelSelectScene);
@@ -486,38 +498,7 @@ public class StartActivity extends BaseGameActivity {
 		case STATE_LEVEL_SELECT:
 			if(presentFocus != FOCUS_LEVEL_SELECT){
 				//속도 가속효과
-				if(levelTileScene.getX()>100){
-					levelTileSceneVelocityX = -(float)Math.sqrt(2*2.0f*(levelTileScene.getX()-100));
-					if(levelTileScene.getX()>200)
-						levelTileSceneVelocityX = -20.0f;
-					else
-						levelTileSceneVelocityX += 2.0f;
-					levelTileScene.setX(levelTileScene.getX()+levelTileSceneVelocityX);
-				}else if(levelTileScene.getX()<(CAMERA_WIDTH-100-levelMainSprite[0].getWidth()*MAX_LEVEL)){
-					levelTileSceneVelocityX = (float)Math.sqrt(2*2.0f*(CAMERA_WIDTH-100-levelMainSprite[0].getWidth()*MAX_LEVEL-levelTileScene.getX()));
-					if(levelTileScene.getX()<(CAMERA_WIDTH-100-levelMainSprite[0].getWidth()*MAX_LEVEL)-100)
-						levelTileSceneVelocityX = +20.0f;
-					else
-						levelTileSceneVelocityX -= 2.0f;
-					levelTileScene.setX(levelTileScene.getX()+levelTileSceneVelocityX);
-					
-				}else{//내부에 있음
-					if(levelTileSceneVelocityX<0)
-						levelTileSceneVelocityX += 0.5f;
-					if(levelTileSceneVelocityX>0)
-						levelTileSceneVelocityX -= 0.5f;
-					if(Math.abs(levelTileSceneVelocityX)<1)
-						levelTileSceneVelocityX = 0;
-	
-					//실제 이동
-					levelTileScene.setX(levelTileScene.getX()+levelTileSceneVelocityX);
-				}
-				
-				//끝에 도달하면 정지
-				if(Math.abs(levelTileScene.getX()-100)<3)
-					levelTileScene.setX(100);
-				if(Math.abs(levelTileScene.getX()-(CAMERA_WIDTH-100-levelMainSprite[0].getX()*MAX_LEVEL))<3)
-					levelTileScene.setX((CAMERA_WIDTH-100-levelMainSprite[0].getX()*MAX_LEVEL));
+				levelScrollScene.generalEffect();
 				
 			}
 			break;
