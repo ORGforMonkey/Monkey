@@ -92,8 +92,11 @@ public class StartActivity extends BaseGameActivity {
 	private Scene mainLogoScene;
 	private Scene mainMenuScene;
 	private Scene levelSelectScene;
-//	private Scene levelTileScene;			private float levelTileSceneVelocityX;
 	private ScrollScene levelScrollScene;
+	
+	// Scene Manager
+	private SceneManager sceneManager;
+
 
 	private int presentState;
 	private int presentFocus;
@@ -122,9 +125,12 @@ public class StartActivity extends BaseGameActivity {
 		presentState = STATE_SPLASH;
 		presentFocus = FOCUS_NONE;
 
+		sceneManager = new SceneManager(mEngine);
+
 		final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED,
 				new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), camera);
+
 	}
 
 	public void loadResources() {
@@ -222,6 +228,7 @@ public class StartActivity extends BaseGameActivity {
 				mainLogoScene.setTouchAreaBindingOnActionDownEnabled(true);
 
 				mEngine.setScene(mainLogoScene);
+//				sceneManager.setScene(mainLogoScene);
 
 			}
 			break;
@@ -266,6 +273,7 @@ public class StartActivity extends BaseGameActivity {
 				mainMenuScene.setTouchAreaBindingOnActionDownEnabled(true);
 
 				mEngine.setScene(mainMenuScene);
+//				sceneManager.setScene(mainMenuScene);
 			}
 
 			break;
@@ -367,7 +375,7 @@ public class StartActivity extends BaseGameActivity {
 				levelSelectScene.attachChild(scrollBar);
 
 				mEngine.setScene(levelSelectScene);
-				
+//				sceneManager.setScene(levelSelectScene);				
 			}
 
 			break;
