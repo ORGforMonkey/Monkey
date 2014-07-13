@@ -6,6 +6,7 @@ import org.andengine.engine.handler.timer.TimerHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
+import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
@@ -23,6 +24,7 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.util.GLState;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.BaseGameActivity;
+import org.andengine.util.color.Color;
 
 import android.graphics.Typeface;
 
@@ -82,6 +84,7 @@ public class StartActivity extends BaseGameActivity {
 
 	// Sprite
 	private Sprite splash;
+	private Rectangle scrollBar;
 	Sprite levelMainSprite[] = new Sprite[MAX_LEVEL];
 
 	// Scene
@@ -128,13 +131,13 @@ public class StartActivity extends BaseGameActivity {
 
 		// 실제로 사용될 이미지들 Load
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 4; i++) {
 			this.mBitmapTextureAtlas[i] = new BitmapTextureAtlas(
 					this.getTextureManager(), 1920, 1920,
 					TextureOptions.BILINEAR);
 
 			this.mBackgroundTextureRegion[i] = BitmapTextureAtlasTextureRegionFactory
-					.createFromAsset(this.mBitmapTextureAtlas[i], this, "test"
+					.createFromAsset(this.mBitmapTextureAtlas[i], this, "back"
 							+ (i + 1) + ".png", 0, 0);
 
 			this.mBitmapTextureAtlas[i].load();
@@ -280,13 +283,8 @@ public class StartActivity extends BaseGameActivity {
 
 				// level을 고르는 버튼들
 				
-				///////////////////for new Class/////////////////////
-				levelScrollScene = new ScrollScene(ScrollScene.SCROLL_IN_X,400*MAX_LEVEL,400);
-				/////////////////////////////////////////////////////
-/*				
-				levelTileScene = new Scene();
-				levelTileScene.setBackgroundEnabled(false);
-*/
+				levelScrollScene = new ScrollScene(ScrollScene.SCROLL_IN_X,CAMERA_WIDTH-200,400);
+
 				for (int i = 0; i < MAX_LEVEL; i++) {
 					levelMainSprite[i] = new Sprite(0, 0,
 							levelMainTextureRegion[i],
@@ -308,12 +306,9 @@ public class StartActivity extends BaseGameActivity {
 					float levelMainSprite_Y = 0;
 
 					levelMainSprite[i].setPosition(levelMainSprite_X, levelMainSprite_Y);
-					///////////////////for new Class/////////////////////
+
 					levelScrollScene.attachChild(levelMainSprite[i]);
-					/////////////////////////////////////////////////////
-/*
-					levelTileScene.attachChild(levelMainSprite[i]);
-*/					
+
 					Text levelText = new Text(0, 0, mBasicFont, "level"+(i+1), ("level"+(i+1)).length(), vertexBufferObjectManager);
 					
 					float levelText_X = levelMainSprite_X + (levelMainSprite[i].getWidth() - levelText.getWidth())/2;
@@ -321,14 +316,8 @@ public class StartActivity extends BaseGameActivity {
 					
 					levelText.setPosition(levelText_X, levelText_Y);
 					
-					///////////////////for new Class/////////////////////
 					levelScrollScene.attachChild(levelText);
 					levelScrollScene.registerTouchArea(levelMainSprite[i]);
-					/////////////////////////////////////////////////////
-/*
-					levelTileScene.attachChild(levelText);
-					levelTileScene.registerTouchArea(levelMainSprite[i]);
-*/					
 
 					levelSelectScene.registerTouchArea(levelMainSprite[i]);
 										
@@ -361,19 +350,21 @@ public class StartActivity extends BaseGameActivity {
 						// TODO Auto-generated method stub
 						if(presentState == STATE_LEVEL_SELECT){
 							pDistanceX/=1.25;
-							///////////////////for new Class/////////////////////
 							levelScrollScene.scroll(pDistanceX);
-							/////////////////////////////////////////////////////
 							
 						}
 					}
 				});
 
-				///////////////////for new Class/////////////////////
 				levelScrollScene.setPosition(100, (CAMERA_HEIGHT-levelScrollScene.getHeight())/2);
+
 				levelSelectScene.attachChild(levelScrollScene.getScene());
-				/////////////////////////////////////////////////////
 				levelSelectScene.setTouchAreaBindingOnActionDownEnabled(true);
+
+				scrollBar = new Rectangle(0,0,CAMERA_WIDTH*(levelScrollScene.getWidth()/levelScrollScene.getLengthX()),30,vertexBufferObjectManager);
+				levelScrollScene.setScrollBar(scrollBar,0,CAMERA_HEIGHT-30,CAMERA_WIDTH,30,new Color(100,100,100));
+				
+				levelSelectScene.attachChild(scrollBar);
 
 				mEngine.setScene(levelSelectScene);
 				
@@ -411,7 +402,6 @@ public class StartActivity extends BaseGameActivity {
 				return true;
 			}
 		};
-		splash.setScale(0.4f);
 		splash.setPosition((CAMERA_WIDTH - splash.getWidth()) / 2,
 				(CAMERA_HEIGHT - splash.getHeight()) / 2);
 		splashScene.attachChild(splash);
@@ -427,7 +417,7 @@ public class StartActivity extends BaseGameActivity {
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 
 		splashTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(),
-				2400, 1920, TextureOptions.DEFAULT);
+				1280, 720, TextureOptions.DEFAULT);
 		splashTextureRegion = BitmapTextureAtlasTextureRegionFactory
 				.createFromAsset(splashTextureAtlas, this, "loading.png", 0, 0);
 		splashTextureAtlas.load();
