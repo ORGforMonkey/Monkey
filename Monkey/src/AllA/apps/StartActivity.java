@@ -8,6 +8,7 @@ import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.Scene;
+import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
 import org.andengine.entity.util.FPSLogger;
@@ -51,8 +52,8 @@ public class StartActivity extends BaseGameActivity {
 	// ===========================================================
 	// Constants
 	// ===========================================================
-	private static final int CAMERA_WIDTH = 1280;
-	private static final int CAMERA_HEIGHT = 720;
+	public static final int CAMERA_WIDTH = 1280;
+	public static final int CAMERA_HEIGHT = 720;
 
 	private static final int STATE_SPLASH = 0;
 	private static final int STATE_MAIN_LOGO = 1;
@@ -125,8 +126,6 @@ public class StartActivity extends BaseGameActivity {
 		presentState = STATE_SPLASH;
 		presentFocus = FOCUS_NONE;
 
-		sceneManager = new SceneManager(mEngine);
-
 		final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED,
 				new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), camera);
@@ -191,11 +190,16 @@ public class StartActivity extends BaseGameActivity {
 
 		presentState = nextState;
 
+		sceneManager.clearTouchAreas();
+		// 씬이 돌아올떄 걱정도 해줘야함
+
+
 		switch (presentState) {
 
 		case STATE_MAIN_LOGO:
 
 			if (mainLogoScene == null) {
+
 				mainLogoScene = new Scene();
 
 				final Sprite MainLogo = new Sprite(0, 0, mainLogoTextureRegion,
@@ -207,6 +211,7 @@ public class StartActivity extends BaseGameActivity {
 							final float pTouchAreaLocalY) {
 						if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
 							loadScenes(STATE_MAIN_MENU);
+
 						}
 						return true;
 
@@ -214,7 +219,8 @@ public class StartActivity extends BaseGameActivity {
 				};
 				MainLogo.setScale(1);
 				mainLogoScene.attachChild(MainLogo);
-				mainLogoScene.registerTouchArea(MainLogo);
+
+				sceneManager.registerTouchArea(MainLogo);
 
 				touchToCountinue = new Text(0, 0, mBasicFont,
 						"Touch Screen to Continue", 25,
@@ -225,10 +231,8 @@ public class StartActivity extends BaseGameActivity {
 				touchToCountinue.setAlpha(0);
 				mainLogoScene.attachChild(touchToCountinue);
 
-				mainLogoScene.setTouchAreaBindingOnActionDownEnabled(true);
 
-				mEngine.setScene(mainLogoScene);
-//				sceneManager.setScene(mainLogoScene);
+				sceneManager.setScene(mainLogoScene);
 
 			}
 			break;
@@ -236,6 +240,7 @@ public class StartActivity extends BaseGameActivity {
 		case STATE_MAIN_MENU:
 
 			if (mainMenuScene == null) {
+				
 				mainMenuScene = new Scene();
 
 				Sprite MainMenuBackSprite = new Sprite(0, 0,
@@ -261,19 +266,18 @@ public class StartActivity extends BaseGameActivity {
 				};
 				
 
-				levelSelectButtonSprite.setScale(1);
 				levelSelectButtonSprite
 						.setPosition((CAMERA_WIDTH - levelSelectButtonSprite
 								.getWidth()) / 2,
 								(CAMERA_HEIGHT - levelSelectButtonSprite
 										.getHeight()) / 2);
 				mainMenuScene.attachChild(levelSelectButtonSprite);
-				mainMenuScene.registerTouchArea(levelSelectButtonSprite);
 
-				mainMenuScene.setTouchAreaBindingOnActionDownEnabled(true);
+				sceneManager.registerTouchArea(levelSelectButtonSprite);
 
-				mEngine.setScene(mainMenuScene);
+
 //				sceneManager.setScene(mainMenuScene);
+				sceneManager.setScene(mainMenuScene,SceneManager.EFFECT_MOVE_UP, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN|SceneManager.EFFECT_BECOME_LARGE);
 			}
 
 			break;
@@ -314,9 +318,10 @@ public class StartActivity extends BaseGameActivity {
 					float levelMainSprite_Y = 0;
 
 					levelMainSprite[i].setPosition(levelMainSprite_X, levelMainSprite_Y);
-
 					levelScrollScene.attachChild(levelMainSprite[i]);
+					sceneManager.registerTouchArea(levelMainSprite[i]);
 
+					
 					Text levelText = new Text(0, 0, mBasicFont, "level"+(i+1), ("level"+(i+1)).length(), vertexBufferObjectManager);
 					
 					float levelText_X = levelMainSprite_X + (levelMainSprite[i].getWidth() - levelText.getWidth())/2;
@@ -325,9 +330,7 @@ public class StartActivity extends BaseGameActivity {
 					levelText.setPosition(levelText_X, levelText_Y);
 					
 					levelScrollScene.attachChild(levelText);
-					levelScrollScene.registerTouchArea(levelMainSprite[i]);
-
-					levelSelectScene.registerTouchArea(levelMainSprite[i]);
+					
 										
 					
 				}
@@ -374,8 +377,7 @@ public class StartActivity extends BaseGameActivity {
 				
 				levelSelectScene.attachChild(scrollBar);
 
-				mEngine.setScene(levelSelectScene);
-//				sceneManager.setScene(levelSelectScene);				
+				sceneManager.setScene(levelSelectScene);				
 			}
 
 			break;
@@ -437,9 +439,12 @@ public class StartActivity extends BaseGameActivity {
 	@Override
 	public void onCreateScene(OnCreateSceneCallback pOnCreateSceneCallback)
 			throws Exception {
-		// TODO Auto-generated method stub
 
+		//sceneManager로 scene들을 관리
+		sceneManager = new SceneManager(mEngine);
+		sceneManager.setBackground(new Background(0, 0, 0));
 		initSplashScene();
+//		sceneManager.setScene(splashScene);
 		pOnCreateSceneCallback.onCreateSceneFinished(this.splashScene);
 
 	}
@@ -465,6 +470,7 @@ public class StartActivity extends BaseGameActivity {
 						mEngine.unregisterUpdateHandler(pTimerHandler);
 
 						// 실제 사용할 이미지들 Load
+
 						loadResources();
 						loadScenes(STATE_MAIN_LOGO);
 
