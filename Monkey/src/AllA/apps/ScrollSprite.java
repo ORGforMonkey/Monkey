@@ -1,20 +1,21 @@
 package AllA.apps;
 
+import org.andengine.entity.Entity;
 import org.andengine.entity.IEntity;
-import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
 import org.andengine.util.color.Color;
 
-public class ScrollScene{
+
+public class ScrollSprite{
 	// Constants
 	static final int SCROLL_IN_X = 0;
 	static final int SCROLL_IN_Y = 1;
 
 	// Variables
-	Scene scrollScene;
+	Entity scrollSprite;
 	float pX;
 	float pY;
 	float Width;
@@ -36,16 +37,14 @@ public class ScrollScene{
 	float scroll_rate;
 	
 	
-	ScrollScene(int direction){
-		scrollScene = new Scene();
-		scrollScene.setBackgroundEnabled(false);
+	ScrollSprite(int direction){
+		scrollSprite = new Entity();
 		scroll_direction = direction;
 	}
 
 	
-	ScrollScene(int direction, float width, float height){
-		scrollScene = new Scene();
-		scrollScene.setBackgroundEnabled(false);
+	ScrollSprite(int direction, float width, float height){
+		scrollSprite = new Entity();
 		scroll_direction = direction;
 
 		Length_X = Width = width;
@@ -55,7 +54,7 @@ public class ScrollScene{
 	
 	// can attach ONLY Sprite and Text
 	public void attachChild(Sprite pSprite){
-		scrollScene.attachChild(pSprite);
+		scrollSprite.attachChild(pSprite);
 
 		// Scroll객체의 크기 갱신 (무조건 (0,0)부터 길이로 측정)
 		if(pSprite.getX()+pSprite.getWidth() > Length_X)
@@ -66,7 +65,7 @@ public class ScrollScene{
 	}
 
 	public void attachChild(Text pText){
-		scrollScene.attachChild(pText);
+		scrollSprite.attachChild(pText);
 
 		// Scroll객체의 크기 갱신 (무조건 (0,0)부터 길이로 측정)
 		if(pText.getX()+pText.getWidth() > Length_X)
@@ -77,18 +76,15 @@ public class ScrollScene{
 	}
 	
 	
-	public Scene getScene(){
-		return scrollScene;
+	public Entity getSprite(){
+		return scrollSprite;
 	}
 	
-	public void registerTouchArea(ITouchArea pTouchArea){
-		scrollScene.registerTouchArea(pTouchArea);
-	}
 		
 	public void setPosition(float pX, float pY){
 		this.pX = pX;
 		this.pY = pY;
-		scrollScene.setPosition(pX, pY);
+		scrollSprite.setPosition(pX, pY);
 	}
 	
 	public float getWidth(){
@@ -129,9 +125,9 @@ public class ScrollScene{
 	// scroll_rate에 맞춰 Scene을 직접 이동 (위치 갱신)
 	public void updateScroll(){
 		if(scroll_direction == SCROLL_IN_X)
-			scrollScene.setX(pX - scroll_rate * (Length_X - Width) );
+			scrollSprite.setX(pX - scroll_rate * (Length_X - Width) );
 		if(scroll_direction == SCROLL_IN_Y)
-			scrollScene.setY(pY - scroll_rate * (Length_Y - Height) );
+			scrollSprite.setY(pY - scroll_rate * (Length_Y - Height) );
 		
 		updateScrollBar();
 	}
@@ -150,8 +146,14 @@ public class ScrollScene{
 	}
 	
 	public void updateScrollBar(){
-		scrollBar.setX(b_pX+scroll_rate*b_Width*(1-Width/Length_X));
-		scrollBar.setY(b_pY);
+		if(scroll_direction == SCROLL_IN_X){
+			scrollBar.setX(b_pX+scroll_rate*b_Width*(1-Width/Length_X));
+			scrollBar.setY(b_pY);
+		}
+		if(scroll_direction == SCROLL_IN_Y){
+			scrollBar.setX(b_pX);
+			scrollBar.setY(b_pY+scroll_rate*b_Height*(1-Height/Length_Y));
+		}
 	}
 	// new methods for scroll function
 	
@@ -176,16 +178,22 @@ public class ScrollScene{
 	
 	public void generalEffect(){
 		
+		float moveDistance=0;
+		if(scroll_direction == SCROLL_IN_X)
+			moveDistance = Length_X-Width;
+		if(scroll_direction == SCROLL_IN_Y)
+			moveDistance = Length_Y-Height;
+		
 		//scroll위치에 따른 속도 지정
 		if(scroll_rate<0){
-			Velocity = -(float)Math.sqrt(2*2.0f*(-scroll_rate)*(Length_X-Width));
-			if(scroll_rate*(Length_X-Width)<-100)
+			Velocity = -(float)Math.sqrt(2*2.0f*(-scroll_rate)*moveDistance);
+			if(scroll_rate*moveDistance<-100)
 				Velocity = -20.0f;
 			else
 				Velocity += 2.0f;
 		}else if(scroll_rate>1.0f){
-			Velocity = (float)Math.sqrt(2*2.0f*(scroll_rate-1)*(Length_X-Width));
-			if((scroll_rate-1)*(Length_X-Width)>100)
+			Velocity = (float)Math.sqrt(2*2.0f*(scroll_rate-1)*moveDistance);
+			if((scroll_rate-1)*moveDistance>100)
 				Velocity = +20.0f;
 			else
 				Velocity -= 2.0f;
@@ -201,14 +209,14 @@ public class ScrollScene{
 		
 		
 		// 스크롤 이동
-		scroll_rate -= Velocity/(Length_X-Width);
+		scroll_rate -= Velocity/moveDistance;
 		
 		//끝에 도달하면 정지
-		if(Math.abs(scroll_rate)*(Length_X-Width)<=Math.abs(Velocity)){
+		if(Math.abs(scroll_rate)*moveDistance<=Math.abs(Velocity)){
 			scroll_rate = 0;
 			Velocity = 0;
 		}
-		if(Math.abs((scroll_rate-1))*(Length_X-Width)<=Math.abs(Velocity)){
+		if(Math.abs((scroll_rate-1))*moveDistance<=Math.abs(Velocity)){
 			scroll_rate = 1;
 			Velocity = 0;
 		}

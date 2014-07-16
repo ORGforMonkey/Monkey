@@ -1,8 +1,13 @@
 package AllA.apps;
 
+import java.util.ArrayList;
+
 import org.andengine.engine.Engine;
 import org.andengine.engine.handler.timer.ITimerCallback;
 import org.andengine.engine.handler.timer.TimerHandler;
+import org.andengine.entity.Entity;
+import org.andengine.entity.IEntity;
+import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.IBackground;
@@ -11,24 +16,31 @@ public class SceneManager {
 	
 	// Constants
 	
-	static final int EFFECT_NONE 			= 0x0;
+	static final int EFFECT_NONE 			= Integer.valueOf("0", 2);
 		// MOVEMENT_EFFECT
-	static final int EFFECT_MOVE_UP			= 0x1;
-	static final int EFFECT_MOVE_DOWN		= 0x10;
-	static final int EFFECT_MOVE_LEFT		= 0x100;
-	static final int EFFECT_MOVE_RIGHT		= 0x1000;
+	static final int EFFECT_MOVE_UP			= Integer.valueOf("1", 2);
+	static final int EFFECT_MOVE_DOWN		= Integer.valueOf("10", 2);
+	static final int EFFECT_MOVE_LEFT		= Integer.valueOf("100", 2);
+	static final int EFFECT_MOVE_RIGHT		= Integer.valueOf("1000", 2);
 		// SIZE_EFFECT
-	static final int EFFECT_BECOME_SMALL	= 0x10000;
-	static final int EFFECT_BECOME_LARGE	= 0x100000;
+	static final int EFFECT_BECOME_SMALL	= Integer.valueOf("10000", 2);
+	static final int EFFECT_BECOME_LARGE	= Integer.valueOf("100000", 2);
 		// FADE_EFFECT
-	static final int EFFECT_FADE_OUT		= 0x1000000;
-	static final int EFFECT_FADE_IN			= 0x10000000;
+	static final int EFFECT_FADE_OUT		= Integer.valueOf("1000000", 2);
+	static final int EFFECT_FADE_IN			= Integer.valueOf("10000000", 2);
+	static final int EFFECT_FADE_UP			= Integer.valueOf("100000000", 2);
+	static final int EFFECT_FADE_DOWN		= Integer.valueOf("1000000000", 2);
+	static final int EFFECT_FADE_LEFT		= Integer.valueOf("10000000000", 2);
+	static final int EFFECT_FADE_RIGHT		= Integer.valueOf("100000000000", 2);
+	
+	// Entities
+//	private ArrayList<Entity> mLayers = new ArrayList<Entity>();
 	
 	// Variables
 	Engine mEngine;
 	Scene primaryScene;
-	Scene attachedScene;
-	Scene nextAttachedScene;
+	Entity attachedLayer;
+	Entity nextAttachedLayer;
 	TimerHandler timer;
 	
 	float Width = StartActivity.CAMERA_WIDTH;
@@ -37,28 +49,36 @@ public class SceneManager {
 	float FPS = 60.0f;
 	
 	
+	boolean isAnimating = false;
+	
+	
 	
 	// Methods
 	
+	Entity CreateLayer(){
+		Entity newLayer = new Entity();
+//		mLayers.add(newLayer);
+		return newLayer;
+	}
+	
+	
+	void init(Entity pLayer){
+		primaryScene = new Scene();
+		attachedLayer = pLayer;
+		if(pLayer!=null)	primaryScene.attachChild(pLayer);
+		primaryScene.setTouchAreaBindingOnActionDownEnabled(true);
+				
+		mEngine.setScene(primaryScene);
+	}
+	
 	SceneManager(Engine pEngine){
 		mEngine = pEngine;
-		primaryScene = new Scene();
-		attachedScene = null;
-		mEngine.setScene(primaryScene);
-		
-		primaryScene.setTouchAreaBindingOnActionDownEnabled(true);
-
+		init(null);
 	}
 
-	SceneManager(Engine pEngine, Scene pScene){
+	SceneManager(Engine pEngine, Entity pLayer){
 		mEngine = pEngine;
-		primaryScene = new Scene();
-		attachedScene = pScene;
-		primaryScene.attachChild(attachedScene);
-		mEngine.setScene(primaryScene);
-		
-		primaryScene.setTouchAreaBindingOnActionDownEnabled(true);
-
+		init(pLayer);
 	}
 
 	
@@ -77,104 +97,143 @@ public class SceneManager {
 	
 	
 	
-	public void setScene(Scene pScene){
+	public void setScene(Entity pLayer){
 		mEngine.setScene(primaryScene);
-
-		primaryScene.detachChild(attachedScene);
-		attachedScene = pScene;
-		primaryScene.attachChild(attachedScene);
+		primaryScene.detachChildren();
+		attachedLayer = pLayer;
+		primaryScene.attachChild(pLayer);
 	}
 	
+	public void setAlphaAll(float alpha, IEntity pIEntity){
+		if(pIEntity==null)
+			return;
+		pIEntity.setAlpha(alpha);
+		if(pIEntity.getChildCount()==0)
+			return;
+		for(int i=0;i<pIEntity.getChildCount();i++){
+			setAlphaAll(alpha, pIEntity.getChildByIndex(i));
+		}
+	}
 	
-	
-	public void setScene(Scene pScene, final int out_Effect, final int in_Effect){
+	public void setScene(Entity pLayer, final int out_Effect, final int in_Effect){
+		if(attachedLayer==null){
+			setScene(pLayer);
+			return;
+		}
+		
+		
 		mEngine.setScene(primaryScene);
 
-		nextAttachedScene = pScene;
-		nextAttachedScene.setAlpha(0);
-		primaryScene.attachChild(nextAttachedScene);
-						
+		nextAttachedLayer = pLayer;
+		nextAttachedLayer.setVisible(false);
+		primaryScene.attachChild(nextAttachedLayer);
+
 		//그래픽 효과 적용
 		timer = new TimerHandler(1 / FPS, true, new ITimerCallback() {
 			
-			private int counter = 0;
+			private float time = 0;
+			private float sw = 0;
+			/*지정해야 하는 부분*/
+			private float outtime = 0.3f;
+			private float intime = 0.3f;
+			private float intime_offset = 0;
 
 			@Override
 			public void onTimePassed(TimerHandler pTimerHandler) {
-				counter ++;
 				
-				//종료 조건
-				if(counter>FPS){
-					primaryScene.detachChild(attachedScene);
-					attachedScene = nextAttachedScene;
-					primaryScene.attachChild(attachedScene);
-					mEngine.unregisterUpdateHandler(pTimerHandler);
-				}
-
+				float outrate = time/outtime;
+				float inrate = (time-intime_offset)/intime;
+				
+				isAnimating = true;
 				
 				// OUT_EFFECTS
-				if(out_Effect == EFFECT_NONE){
+				if(0<=outrate && outrate<=1){
+					if(out_Effect == EFFECT_NONE){
+					}
+					if((out_Effect&EFFECT_MOVE_UP) != 0){
+						attachedLayer.setY(-Height*outrate);
+					}
+					if((out_Effect&EFFECT_MOVE_DOWN) != 0){
+						attachedLayer.setY(Height*outrate);
+					}
+					if((out_Effect&EFFECT_MOVE_LEFT) != 0){
+						attachedLayer.setX(-Width*outrate);
+					}
+					if((out_Effect&EFFECT_MOVE_RIGHT) != 0){
+						attachedLayer.setX(Width*outrate);
+					}
+					if((out_Effect&EFFECT_BECOME_SMALL) != 0){
+						attachedLayer.setScale(1-outrate);
+					}
+					if((out_Effect&EFFECT_BECOME_LARGE) != 0){
+						attachedLayer.setScale(1+outrate);
+					}
+					if((out_Effect&EFFECT_FADE_OUT) != 0){
+
+						setAlphaAll(1-outrate,attachedLayer);
+					}
+					
 				}
-				if((out_Effect&EFFECT_MOVE_UP) != 0){
-					attachedScene.setY(attachedScene.getY()-Height/FPS);
-				}
-				if((out_Effect&EFFECT_MOVE_DOWN) != 0){
-					attachedScene.setY(attachedScene.getY()+Height/FPS);
-				}
-				if((out_Effect&EFFECT_MOVE_LEFT) != 0){
-					attachedScene.setX(attachedScene.getX()-Width/FPS);
-				}
-				if((out_Effect&EFFECT_MOVE_RIGHT) != 0){
-					attachedScene.setX(attachedScene.getX()+Width/FPS);
-				}
-				if((out_Effect&EFFECT_BECOME_SMALL) != 0){
-					attachedScene.setScale(1-counter/FPS);
-				}
-				if((out_Effect&EFFECT_BECOME_LARGE) != 0){
-					attachedScene.setScale(1+counter/FPS);
-				}
-				if((out_Effect&EFFECT_FADE_OUT) != 0){
-					// 다른효과보단 좀더 빠르다
-					if(attachedScene.getAlpha()>=2/FPS)
-						attachedScene.setAlpha(1-2*counter/FPS);
-				}
-				
 				
 				// IN_EFFECTS
-				if(in_Effect == EFFECT_NONE){
-					nextAttachedScene.setAlpha(1);
+				if(0<=inrate && inrate<=1){
+					nextAttachedLayer.setVisible(true);
+					if(in_Effect == EFFECT_NONE){
+					}
+					if((in_Effect&EFFECT_MOVE_UP) != 0){
+						if(sw == 0)
+							nextAttachedLayer.setY(Height);
+						nextAttachedLayer.setY(Height*(1-outrate));
+					}
+					if((in_Effect&EFFECT_MOVE_DOWN) != 0){
+						if(sw == 0)
+							nextAttachedLayer.setY(-Height);
+						nextAttachedLayer.setY(-Height*(1-outrate));
+					}
+					if((in_Effect&EFFECT_MOVE_LEFT) != 0){
+						if(sw == 0)
+							nextAttachedLayer.setX(Width);
+						nextAttachedLayer.setX(Width*(1-outrate));
+					}
+					if((in_Effect&EFFECT_MOVE_RIGHT) != 0){
+						if(sw == 0)
+							nextAttachedLayer.setX(-Width);
+						nextAttachedLayer.setX(-Width*(1-outrate));
+					}
+					if((in_Effect&EFFECT_BECOME_SMALL) != 0){
+						nextAttachedLayer.setScale(2-inrate);
+					}
+					if((in_Effect&EFFECT_BECOME_LARGE) != 0){
+						nextAttachedLayer.setScale(inrate);
+					}
+					if((in_Effect&EFFECT_FADE_IN) != 0){
+						if(sw == 0)
+							setAlphaAll(0,nextAttachedLayer);
+
+						if(nextAttachedLayer.getAlpha()<=1-2/FPS)
+							setAlphaAll(inrate,nextAttachedLayer);
+					}else{
+						nextAttachedLayer.setAlpha(1);
+					}
 				}
-				if((in_Effect&EFFECT_MOVE_UP) != 0){
-					if(nextAttachedScene.getY() == 0)
-						nextAttachedScene.setY(Height);
-					nextAttachedScene.setY(nextAttachedScene.getY()-Height/FPS);
+				
+				
+				
+				//종료 조건
+				if(time > Math.max(outtime, intime_offset+intime)/*총 지속시간*/){
+					primaryScene.detachChild(attachedLayer);
+					attachedLayer = nextAttachedLayer;
+					attachedLayer.setPosition(0, 0);
+					setAlphaAll(1,attachedLayer);
+
+					isAnimating = false;
+					
+					mEngine.unregisterUpdateHandler(pTimerHandler);					
 				}
-				if((in_Effect&EFFECT_MOVE_DOWN) != 0){
-					if(nextAttachedScene.getY() == 0)
-						nextAttachedScene.setY(-Height);
-					nextAttachedScene.setY(nextAttachedScene.getY()+Height/FPS);
-				}
-				if((in_Effect&EFFECT_MOVE_LEFT) != 0){
-					if(nextAttachedScene.getX() == 0)
-						nextAttachedScene.setX(Width);
-					nextAttachedScene.setX(nextAttachedScene.getX()-Width/FPS);
-				}
-				if((in_Effect&EFFECT_MOVE_RIGHT) != 0){
-					if(nextAttachedScene.getX() == 0)
-						nextAttachedScene.setX(-Width);
-					nextAttachedScene.setX(nextAttachedScene.getX()+Width/FPS);
-				}
-				if((in_Effect&EFFECT_BECOME_SMALL) != 0){
-					nextAttachedScene.setScale(2-counter/FPS);
-				}
-				if((in_Effect&EFFECT_BECOME_LARGE) != 0){
-					nextAttachedScene.setScale(counter/FPS);
-				}
-				if((in_Effect&EFFECT_FADE_IN) != 0){
-					// 다른효과보단 좀더 빠르다
-					if(nextAttachedScene.getAlpha()<=1-2/FPS)
-						nextAttachedScene.setAlpha(2*counter/FPS);
-				}
+				
+				//유지 관리
+				time += 1/FPS;
+				sw = 1;
 
 			}
 		});
@@ -189,6 +248,10 @@ public class SceneManager {
 	
 	public void setBackgroundEnabled(boolean pEnabled){
 		primaryScene.setBackgroundEnabled(pEnabled);
+	}
+	
+	public boolean isAnimating(){
+		return isAnimating;
 	}
 
 }

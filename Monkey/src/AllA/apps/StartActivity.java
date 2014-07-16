@@ -6,6 +6,7 @@ import org.andengine.engine.handler.timer.TimerHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
+import org.andengine.entity.Entity;
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
@@ -27,7 +28,10 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.BaseGameActivity;
 import org.andengine.util.color.Color;
 
+
+
 import android.graphics.Typeface;
+import android.view.KeyEvent;
 
 /**
  * (c) 2014 Park Hyung Kee
@@ -87,13 +91,17 @@ public class StartActivity extends BaseGameActivity {
 	private Sprite splash;
 	private Rectangle scrollBar;
 	Sprite levelMainSprite[] = new Sprite[MAX_LEVEL];
-
+	private ScrollSprite levelScrollSprite;
+	private Sprite MainLogoSprite;
+	private Sprite levelSelectButtonSprite;
+	private Sprite levelSelectBackSprite;
+	
+	
 	// Scene
 	private Scene splashScene;
-	private Scene mainLogoScene;
-	private Scene mainMenuScene;
-	private Scene levelSelectScene;
-	private ScrollScene levelScrollScene;
+	private Entity mainLogoScene;
+	private Entity mainMenuScene;
+	private Entity levelSelectScene;
 	
 	// Scene Manager
 	private SceneManager sceneManager;
@@ -110,6 +118,7 @@ public class StartActivity extends BaseGameActivity {
 	private TimerHandler onGameTimer;
 	
 	SurfaceScrollDetector mScrollDetector;
+	SurfaceScrollDetector mScrollDetector2;
 
 	// ===========================================================
 	// Constructors
@@ -122,7 +131,7 @@ public class StartActivity extends BaseGameActivity {
 	// ===========================================================
 	@Override
 	public EngineOptions onCreateEngineOptions() {
-
+		
 		presentState = STATE_SPLASH;
 		presentFocus = FOCUS_NONE;
 
@@ -133,7 +142,7 @@ public class StartActivity extends BaseGameActivity {
 	}
 
 	public void loadResources() {
-
+		
 		// 실제로 사용될 이미지들 Load
 
 		for (int i = 0; i < 4; i++) {
@@ -167,7 +176,7 @@ public class StartActivity extends BaseGameActivity {
 		mainLogoTextureAtlas.load();
 
 		main_LevelSelectButton_TextureAtlas = new BitmapTextureAtlas(
-				getTextureManager(), 397, 255, TextureOptions.BILINEAR);
+				getTextureManager(), 400, 200, TextureOptions.BILINEAR);
 		main_LevelSelectButton_TextureRegion = BitmapTextureAtlasTextureRegionFactory
 				.createFromAsset(main_LevelSelectButton_TextureAtlas, this,
 						"menu_selectlevel.png", 0, 0);
@@ -200,9 +209,9 @@ public class StartActivity extends BaseGameActivity {
 
 			if (mainLogoScene == null) {
 
-				mainLogoScene = new Scene();
+				mainLogoScene = sceneManager.CreateLayer();
 
-				final Sprite MainLogo = new Sprite(0, 0, mainLogoTextureRegion,
+				MainLogoSprite = new Sprite(0, 0, mainLogoTextureRegion,
 						vertexBufferObjectManager) {
 					@Override
 					public boolean onAreaTouched(
@@ -217,10 +226,9 @@ public class StartActivity extends BaseGameActivity {
 
 					}
 				};
-				MainLogo.setScale(1);
-				mainLogoScene.attachChild(MainLogo);
+				MainLogoSprite.setScale(1);
+				mainLogoScene.attachChild(MainLogoSprite);
 
-				sceneManager.registerTouchArea(MainLogo);
 
 				touchToCountinue = new Text(0, 0, mBasicFont,
 						"Touch Screen to Continue", 25,
@@ -231,24 +239,24 @@ public class StartActivity extends BaseGameActivity {
 				touchToCountinue.setAlpha(0);
 				mainLogoScene.attachChild(touchToCountinue);
 
-
-				sceneManager.setScene(mainLogoScene);
-
 			}
+			sceneManager.registerTouchArea(MainLogoSprite);
+			sceneManager.setScene(mainLogoScene);
+
 			break;
 
 		case STATE_MAIN_MENU:
 
 			if (mainMenuScene == null) {
 				
-				mainMenuScene = new Scene();
+				mainMenuScene = sceneManager.CreateLayer();
 
 				Sprite MainMenuBackSprite = new Sprite(0, 0,
 						mBackgroundTextureRegion[1], vertexBufferObjectManager);
 				MainMenuBackSprite.setScale(1);
 				mainMenuScene.attachChild(MainMenuBackSprite);
 
-				Sprite levelSelectButtonSprite = new Sprite(0, 0,
+				levelSelectButtonSprite = new Sprite(0, 0,
 						main_LevelSelectButton_TextureRegion,
 						vertexBufferObjectManager) {
 					@Override
@@ -273,40 +281,65 @@ public class StartActivity extends BaseGameActivity {
 										.getHeight()) / 2);
 				mainMenuScene.attachChild(levelSelectButtonSprite);
 
-				sceneManager.registerTouchArea(levelSelectButtonSprite);
 
 
-//				sceneManager.setScene(mainMenuScene);
-				sceneManager.setScene(mainMenuScene,SceneManager.EFFECT_MOVE_UP, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN|SceneManager.EFFECT_BECOME_LARGE);
 			}
+			sceneManager.registerTouchArea(levelSelectButtonSprite);
+			sceneManager.setScene(mainMenuScene,SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN);
 
 			break;
 
 		case STATE_LEVEL_SELECT:
 
 			if (levelSelectScene == null) {
-				levelSelectScene = new Scene();
+				levelSelectScene = sceneManager.CreateLayer();
 
-				Sprite levelSelectBackSprite = new Sprite(0, 0,
-						mBackgroundTextureRegion[2], vertexBufferObjectManager);
+				levelSelectBackSprite = new Sprite(0, 0,
+						mBackgroundTextureRegion[2], vertexBufferObjectManager) {
+					boolean isFocused = false;
+					@Override
+					public boolean onAreaTouched(
+							TouchEvent pSceneTouchEvent,
+							float pTouchAreaLocalX,
+							float pTouchAreaLocalY) {
+						// TODO Auto-generated method stub
+						if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
+							isFocused = true;
+						if(isFocused)
+							mScrollDetector2.onTouchEvent(pSceneTouchEvent);
+						if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP)
+							isFocused = false;
+
+						return super
+								.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+					}
+				};
 				levelSelectBackSprite.setScale(1);
 				levelSelectScene.attachChild(levelSelectBackSprite);
 
 
 				// level을 고르는 버튼들
 				
-				levelScrollScene = new ScrollScene(ScrollScene.SCROLL_IN_X,CAMERA_WIDTH-200,400);
+				levelScrollSprite = new ScrollSprite(ScrollSprite.SCROLL_IN_X,CAMERA_WIDTH-200,400);
 
 				for (int i = 0; i < MAX_LEVEL; i++) {
 					levelMainSprite[i] = new Sprite(0, 0,
 							levelMainTextureRegion[i],
 							vertexBufferObjectManager) {
+						boolean isFocused = false;
 						@Override
 						public boolean onAreaTouched(
 								TouchEvent pSceneTouchEvent,
 								float pTouchAreaLocalX, float pTouchAreaLocalY) {
-							presentFocus = FOCUS_LEVEL_SELECT;
-							mScrollDetector.onTouchEvent(pSceneTouchEvent);
+
+							if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
+								isFocused = true;
+							if(isFocused){
+								presentFocus = FOCUS_LEVEL_SELECT;
+								mScrollDetector.onTouchEvent(pSceneTouchEvent);
+							}
+							if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP)
+								isFocused = false;
 							return true;
 						}
 						
@@ -318,8 +351,7 @@ public class StartActivity extends BaseGameActivity {
 					float levelMainSprite_Y = 0;
 
 					levelMainSprite[i].setPosition(levelMainSprite_X, levelMainSprite_Y);
-					levelScrollScene.attachChild(levelMainSprite[i]);
-					sceneManager.registerTouchArea(levelMainSprite[i]);
+					levelScrollSprite.attachChild(levelMainSprite[i]);
 
 					
 					Text levelText = new Text(0, 0, mBasicFont, "level"+(i+1), ("level"+(i+1)).length(), vertexBufferObjectManager);
@@ -329,13 +361,13 @@ public class StartActivity extends BaseGameActivity {
 					
 					levelText.setPosition(levelText_X, levelText_Y);
 					
-					levelScrollScene.attachChild(levelText);
+					levelScrollSprite.attachChild(levelText);
 					
 										
 					
 				}
 
-				levelScrollScene.setPosition(
+				levelScrollSprite.setPosition(
 						100,
 						(CAMERA_HEIGHT-levelMainSprite[0].getHeight())/2);
 				
@@ -360,25 +392,57 @@ public class StartActivity extends BaseGameActivity {
 							float pDistanceX, float pDistanceY) {
 						// TODO Auto-generated method stub
 						if(presentState == STATE_LEVEL_SELECT){
-							pDistanceX/=1.25;
-							levelScrollScene.scroll(pDistanceX);
-							
+							pDistanceX/=1.5;
+							levelScrollSprite.scroll(pDistanceX);
+
 						}
 					}
 				});
 
-				levelScrollScene.setPosition(100, (CAMERA_HEIGHT-levelScrollScene.getHeight())/2);
+				levelScrollSprite.setPosition(100, (CAMERA_HEIGHT-levelScrollSprite.getHeight())/2);
 
-				levelSelectScene.attachChild(levelScrollScene.getScene());
-				levelSelectScene.setTouchAreaBindingOnActionDownEnabled(true);
+				levelSelectScene.attachChild(levelScrollSprite.getSprite());
 
-				scrollBar = new Rectangle(0,0,CAMERA_WIDTH*(levelScrollScene.getWidth()/levelScrollScene.getLengthX()),30,vertexBufferObjectManager);
-				levelScrollScene.setScrollBar(scrollBar,0,CAMERA_HEIGHT-30,CAMERA_WIDTH,30,new Color(100,100,100));
+				scrollBar = new Rectangle(0,0,CAMERA_WIDTH*(levelScrollSprite.getWidth()/levelScrollSprite.getLengthX()),30,vertexBufferObjectManager);
+				levelScrollSprite.setScrollBar(scrollBar,0,CAMERA_HEIGHT-30,CAMERA_WIDTH,30,new Color(100,100,100));
 				
 				levelSelectScene.attachChild(scrollBar);
+				
+				
+				// 이전화면으로
+				mScrollDetector2 = new SurfaceScrollDetector(new IScrollDetectorListener() {
+					
+					@Override
+					public void onScrollStarted(ScrollDetector pScollDetector, int pPointerID,
+							float pDistanceX, float pDistanceY) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					@Override
+					public void onScrollFinished(ScrollDetector pScollDetector, int pPointerID,
+							float pDistanceX, float pDistanceY) {
+						// TODO Auto-generated method stub
+						levelSelectScene.setY(0);
+						
+					}
+					
+					@Override
+					public void onScroll(ScrollDetector pScollDetector, int pPointerID,
+							float pDistanceX, float pDistanceY) {
+						if(presentState == STATE_LEVEL_SELECT){
+							pDistanceY/=1.5;
+							levelSelectScene.setY(levelSelectScene.getY()+pDistanceY);
+//							loadScene(STATE_MAIN_MENU);
+						}
+					}
+				});
 
-				sceneManager.setScene(levelSelectScene);				
 			}
+			for(int i=0;i<MAX_LEVEL;i++)	sceneManager.registerTouchArea(levelMainSprite[i]);
+			sceneManager.registerTouchArea(levelSelectBackSprite);
+//			sceneManager.setScene(levelSelectScene,SceneManager.EFFECT_MOVE_UP, SceneManager.EFFECT_MOVE_UP);
+			sceneManager.setScene(levelSelectScene,SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN);
 
 			break;
 
@@ -412,9 +476,12 @@ public class StartActivity extends BaseGameActivity {
 				return true;
 			}
 		};
+
+		
 		splash.setPosition((CAMERA_WIDTH - splash.getWidth()) / 2,
 				(CAMERA_HEIGHT - splash.getHeight()) / 2);
 		splashScene.attachChild(splash);
+		
 	}
 
 	@Override
@@ -444,7 +511,7 @@ public class StartActivity extends BaseGameActivity {
 		sceneManager = new SceneManager(mEngine);
 		sceneManager.setBackground(new Background(0, 0, 0));
 		initSplashScene();
-//		sceneManager.setScene(splashScene);
+		
 		pOnCreateSceneCallback.onCreateSceneFinished(this.splashScene);
 
 	}
@@ -502,7 +569,7 @@ public class StartActivity extends BaseGameActivity {
 		case STATE_LEVEL_SELECT:
 			if(presentFocus != FOCUS_LEVEL_SELECT){
 				//속도 가속효과
-				levelScrollScene.generalEffect();
+				levelScrollSprite.generalEffect();
 				
 			}
 			break;
@@ -510,6 +577,24 @@ public class StartActivity extends BaseGameActivity {
 		}
 		// TODO Auto-generated method stub
 
+	}
+	
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		// TODO Auto-generated method stub
+		if(keyCode == KeyEvent.KEYCODE_BACK){
+			switch(presentState){
+			case STATE_LEVEL_SELECT:
+				if(sceneManager.isAnimating() == false)
+					loadScenes(STATE_MAIN_MENU);
+				break;
+
+			case STATE_MAIN_MENU:
+				return super.onKeyDown(keyCode, event);
+			}
+		}
+		return true;
 	}
 
 	// ===========================================================
