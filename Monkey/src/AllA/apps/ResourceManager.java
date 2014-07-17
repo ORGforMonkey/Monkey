@@ -62,6 +62,9 @@ public class ResourceManager {
 		BitmapTextureAtlas newTextureAtlas;
 		ITextureRegion newTextureRegion;
 		
+		if(AtlasResources.containsKey(keys))
+			return;
+		
 		newTextureAtlas = new BitmapTextureAtlas(mTextureManager, pWidth, pHeight, TextureOptions.BILINEAR);
 
 		newTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(newTextureAtlas, mContext, pAssetPath, 0, 0);
@@ -73,6 +76,9 @@ public class ResourceManager {
 	}
 	
 	public void loadFont(String keys, int pTextureWidth, int pTextureHeight, Typeface pTypeface, float pSize){
+		if(FontResources.containsKey(keys))
+			return;
+		
 		IFont newFont = FontFactory.create(mFontManager, mTextureManager, pTextureWidth, pTextureHeight, pTypeface, pSize);
 		newFont.load();
 		FontResources.put(keys, newFont);
