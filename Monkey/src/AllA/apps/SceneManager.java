@@ -53,14 +53,18 @@ public class SceneManager {
 	
 	
 	
-	// Methods
-	
-	Entity CreateLayer(){
-		Entity newLayer = new Entity();
-//		mLayers.add(newLayer);
-		return newLayer;
+	// ===========================================================
+	// Constructors
+	// ===========================================================	
+	SceneManager(Engine pEngine){
+		mEngine = pEngine;
+		init(null);
 	}
-	
+
+	SceneManager(Engine pEngine, Entity pLayer){
+		mEngine = pEngine;
+		init(pLayer);
+	}
 	
 	void init(Entity pLayer){
 		primaryScene = new Scene();
@@ -71,39 +75,13 @@ public class SceneManager {
 		mEngine.setScene(primaryScene);
 	}
 	
-	SceneManager(Engine pEngine){
-		mEngine = pEngine;
-		init(null);
-	}
-
-	SceneManager(Engine pEngine, Entity pLayer){
-		mEngine = pEngine;
-		init(pLayer);
-	}
-
-	
-	public void clearTouchAreas(){
-		primaryScene.clearTouchAreas();
-	}
-	
+	// ===========================================================
+	// Getter & Setter
+	// ===========================================================
 	public Scene getScene(){
 		return primaryScene;
 	}
-	
-	public void registerTouchArea(ITouchArea pTouchArea){
-		primaryScene.registerTouchArea(pTouchArea);
-		primaryScene.setTouchAreaBindingOnActionDownEnabled(true);
-	}
-	
-	
-	
-	public void setScene(Entity pLayer){
-		mEngine.setScene(primaryScene);
-		primaryScene.detachChildren();
-		attachedLayer = pLayer;
-		primaryScene.attachChild(pLayer);
-	}
-	
+
 	public void setAlphaAll(float alpha, IEntity pIEntity){
 		if(pIEntity==null)
 			return;
@@ -115,14 +93,19 @@ public class SceneManager {
 		}
 	}
 	
+	public void setScene(Entity pLayer){
+		setScene(pLayer,EFFECT_NONE,EFFECT_NONE);
+	}
+	
 	public void setScene(Entity pLayer, final int out_Effect, final int in_Effect){
+		mEngine.setScene(primaryScene);
+
 		if(attachedLayer==null){
-			setScene(pLayer);
+			primaryScene.detachChildren();
+			attachedLayer = pLayer;
+			primaryScene.attachChild(pLayer);
 			return;
 		}
-		
-		
-		mEngine.setScene(primaryScene);
 
 		nextAttachedLayer = pLayer;
 		nextAttachedLayer.setVisible(false);
@@ -179,6 +162,7 @@ public class SceneManager {
 				if(0<=inrate && inrate<=1){
 					nextAttachedLayer.setVisible(true);
 					if(in_Effect == EFFECT_NONE){
+						nextAttachedLayer.setAlpha(1);
 					}
 					if((in_Effect&EFFECT_MOVE_UP) != 0){
 						if(sw == 0)
@@ -216,11 +200,12 @@ public class SceneManager {
 						nextAttachedLayer.setAlpha(1);
 					}
 				}
-				
-				
+								
+				outrate = (out_Effect==EFFECT_NONE)?1:outrate;
+				inrate = (in_Effect==EFFECT_NONE)?1:inrate;
 				
 				//종료 조건
-				if(time > Math.max(outtime, intime_offset+intime)/*총 지속시간*/){
+				if((inrate>outrate?inrate:outrate) >= 1){
 					primaryScene.detachChild(attachedLayer);
 					attachedLayer = nextAttachedLayer;
 					attachedLayer.setPosition(0, 0);
@@ -248,6 +233,24 @@ public class SceneManager {
 	
 	public void setBackgroundEnabled(boolean pEnabled){
 		primaryScene.setBackgroundEnabled(pEnabled);
+	}
+	
+	
+	// ===========================================================
+	// Methods
+	// ===========================================================
+	Entity CreateLayer(){
+		Entity newLayer = new Entity();
+		return newLayer;
+	}
+
+	public void clearTouchAreas(){
+		primaryScene.clearTouchAreas();
+	}
+		
+	public void registerTouchArea(ITouchArea pTouchArea){
+		primaryScene.registerTouchArea(pTouchArea);
+		primaryScene.setTouchAreaBindingOnActionDownEnabled(true);
 	}
 	
 	public boolean isAnimating(){

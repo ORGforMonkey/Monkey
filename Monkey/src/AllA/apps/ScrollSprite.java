@@ -2,8 +2,7 @@ package AllA.apps;
 
 import org.andengine.entity.Entity;
 import org.andengine.entity.IEntity;
-import org.andengine.entity.scene.ITouchArea;
-import org.andengine.entity.scene.Scene;
+import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
 import org.andengine.util.color.Color;
@@ -37,6 +36,9 @@ public class ScrollSprite{
 	float scroll_rate;
 	
 	
+	// ===========================================================
+	// Constructors
+	// ===========================================================
 	ScrollSprite(int direction){
 		scrollSprite = new Entity();
 		scroll_direction = direction;
@@ -47,12 +49,63 @@ public class ScrollSprite{
 		scrollSprite = new Entity();
 		scroll_direction = direction;
 
-		Length_X = Width = width;
-		Length_Y = Height = height;
+		Width = width;
+		Height = height;
+		
+		Length_X = Width + 1;
+		Length_Y = Height + 1;
+	}
+	
+	
+	
+	// ===========================================================
+	// Getter & Setter
+	// ===========================================================
+	public Entity getSprite(){
+		return scrollSprite;
+	}
+		
+	public float getWidth(){
+		return Width;
+	}
+	
+	public float getHeight(){
+		return Height;
+	}
+	
+	public float getRate(){
+		return scroll_rate;
+	}
+	
+	public float getLengthX(){
+		return Length_X;
+	}
+	
+	public float getLengthY(){
+		return Length_Y;
+	}
+	
+	public float getMovedDistance(){
+		if(scroll_direction == SCROLL_IN_X)
+			return scroll_rate * (Length_X-Width);
+		else
+			return scroll_rate * (Length_Y-Height);
+	}
+	
+	
+	public void setPosition(float pX, float pY){
+		this.pX = pX;
+		this.pY = pY;
+		scrollSprite.setPosition(pX, pY);
 	}
 
+
 	
-	// can attach ONLY Sprite and Text
+	// ===========================================================
+	// Methods
+	// ===========================================================
+
+	
 	public void attachChild(Sprite pSprite){
 		scrollSprite.attachChild(pSprite);
 
@@ -76,26 +129,25 @@ public class ScrollSprite{
 	}
 	
 	
-	public Entity getSprite(){
-		return scrollSprite;
-	}
-	
-		
-	public void setPosition(float pX, float pY){
-		this.pX = pX;
-		this.pY = pY;
-		scrollSprite.setPosition(pX, pY);
-	}
-	
-	public float getWidth(){
-		return Width;
-	}
-	
-	public float getHeight(){
-		return Height;
-	}
+	public void attachChild(Rectangle pRect){
+		scrollSprite.attachChild(pRect);
 
+		// Scroll객체의 크기 갱신 (무조건 (0,0)부터 길이로 측정)
+		if(pRect.getX()+pRect.getWidth() > Length_X)
+			Length_X = pRect.getX()+pRect.getWidth();
+
+		if(pRect.getY()+pRect.getHeight() > Length_Y)
+			Length_Y = pRect.getY()+pRect.getHeight();
+	}
 	
+	
+	public void attachChild(Entity pEntity){
+		scrollSprite.attachChild(pEntity);
+	}
+	
+	
+
+	// Scrolling 구현
 	public void scroll(float pDistance){
 		float term = 0;
 		// X와 Y의 구분없이 통합
@@ -104,6 +156,7 @@ public class ScrollSprite{
 		
 		//속도 갱신
 		Velocity = pDistance;
+		
 		
 		// Scroll적용
 		if(scroll_rate>1){
@@ -127,8 +180,8 @@ public class ScrollSprite{
 		if(scroll_direction == SCROLL_IN_X)
 			scrollSprite.setX(pX - scroll_rate * (Length_X - Width) );
 		if(scroll_direction == SCROLL_IN_Y)
-			scrollSprite.setY(pY - scroll_rate * (Length_Y - Height) );
-		
+			scrollSprite.setY(pY - scroll_rate * (Length_Y - Height) );			
+
 		updateScrollBar();
 	}
 	
@@ -146,6 +199,9 @@ public class ScrollSprite{
 	}
 	
 	public void updateScrollBar(){
+		if(scrollBar == null)
+			return;
+		
 		if(scroll_direction == SCROLL_IN_X){
 			scrollBar.setX(b_pX+scroll_rate*b_Width*(1-Width/Length_X));
 			scrollBar.setY(b_pY);
@@ -154,26 +210,6 @@ public class ScrollSprite{
 			scrollBar.setX(b_pX);
 			scrollBar.setY(b_pY+scroll_rate*b_Height*(1-Height/Length_Y));
 		}
-	}
-	// new methods for scroll function
-	
-	public float getRate(){
-		return scroll_rate;
-	}
-	
-	public float getLengthX(){
-		return Length_X;
-	}
-	
-	public float getLengthY(){
-		return Length_Y;
-	}
-	
-	public float getMovedDistance(){
-		if(scroll_direction == SCROLL_IN_X)
-			return scroll_rate * Width;
-		else
-			return scroll_rate * Height;
 	}
 	
 	public void generalEffect(){
@@ -219,6 +255,7 @@ public class ScrollSprite{
 		if(Math.abs((scroll_rate-1))*moveDistance<=Math.abs(Velocity)){
 			scroll_rate = 1;
 			Velocity = 0;
+
 		}
 		
 		updateScroll();

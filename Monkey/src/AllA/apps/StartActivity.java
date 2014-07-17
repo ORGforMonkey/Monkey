@@ -7,6 +7,7 @@ import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.Entity;
+import org.andengine.entity.IEntity;
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
@@ -27,6 +28,7 @@ import org.andengine.opengl.util.GLState;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.ui.activity.BaseGameActivity;
 import org.andengine.util.color.Color;
+
 
 
 
@@ -67,6 +69,7 @@ public class StartActivity extends BaseGameActivity {
 	
 	private static final int FOCUS_NONE = 0;
 	private static final int FOCUS_LEVEL_SELECT = 1;
+	private static final int FOCUS_LEVEL_SCENE_MOVE = 2;
 
 	private static final int MAX_LEVEL = 6;
 	private static final float FPS = 60;
@@ -92,6 +95,7 @@ public class StartActivity extends BaseGameActivity {
 	private Rectangle scrollBar;
 	Sprite levelMainSprite[] = new Sprite[MAX_LEVEL];
 	private ScrollSprite levelScrollSprite;
+	private ScrollSprite levelScrollSprite2;
 	private Sprite MainLogoSprite;
 	private Sprite levelSelectButtonSprite;
 	private Sprite levelSelectBackSprite;
@@ -189,8 +193,12 @@ public class StartActivity extends BaseGameActivity {
 		mBasicFont.load();
 
 	}
+	
+	private void loadScenes(int nextState){
+		loadScenes(nextState, SceneManager.EFFECT_NONE, SceneManager.EFFECT_NONE);
+	}
 
-	private void loadScenes(int nextState) {
+	private void loadScenes(int nextState, int out_Effect, int in_Effect) {
 
 		// 실제로 사용될 scene들을 구성
 
@@ -219,7 +227,7 @@ public class StartActivity extends BaseGameActivity {
 							final float pTouchAreaLocalX,
 							final float pTouchAreaLocalY) {
 						if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
-							loadScenes(STATE_MAIN_MENU);
+							loadScenes(STATE_MAIN_MENU, SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_IN);
 
 						}
 						return true;
@@ -241,7 +249,7 @@ public class StartActivity extends BaseGameActivity {
 
 			}
 			sceneManager.registerTouchArea(MainLogoSprite);
-			sceneManager.setScene(mainLogoScene);
+			sceneManager.setScene(mainLogoScene, out_Effect, in_Effect);
 
 			break;
 
@@ -265,7 +273,7 @@ public class StartActivity extends BaseGameActivity {
 							final float pTouchAreaLocalX,
 							final float pTouchAreaLocalY) {
 						if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
-							loadScenes(STATE_LEVEL_SELECT);
+							loadScenes(STATE_LEVEL_SELECT, SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_IN);
 						}
 						return true;
 
@@ -285,7 +293,7 @@ public class StartActivity extends BaseGameActivity {
 
 			}
 			sceneManager.registerTouchArea(levelSelectButtonSprite);
-			sceneManager.setScene(mainMenuScene,SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN);
+			sceneManager.setScene(mainMenuScene,out_Effect,in_Effect);
 
 			break;
 
@@ -293,7 +301,7 @@ public class StartActivity extends BaseGameActivity {
 
 			if (levelSelectScene == null) {
 				levelSelectScene = sceneManager.CreateLayer();
-
+				
 				levelSelectBackSprite = new Sprite(0, 0,
 						mBackgroundTextureRegion[2], vertexBufferObjectManager) {
 					boolean isFocused = false;
@@ -305,10 +313,14 @@ public class StartActivity extends BaseGameActivity {
 						// TODO Auto-generated method stub
 						if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
 							isFocused = true;
-						if(isFocused)
+						if(isFocused){
+							presentFocus = FOCUS_LEVEL_SCENE_MOVE;
 							mScrollDetector2.onTouchEvent(pSceneTouchEvent);
-						if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP)
+						}
+						if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP){
 							isFocused = false;
+							presentFocus = FOCUS_NONE;
+						}
 
 						return super
 								.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
@@ -317,6 +329,19 @@ public class StartActivity extends BaseGameActivity {
 				levelSelectBackSprite.setScale(1);
 				levelSelectScene.attachChild(levelSelectBackSprite);
 
+				/////////////////////////////////////////////////////////////////////////////////////////////////////
+				levelScrollSprite2 = new ScrollSprite(ScrollSprite.SCROLL_IN_Y,	 CAMERA_WIDTH, CAMERA_HEIGHT){
+					@Override
+					public void generalEffect() {
+						// TODO Auto-generated method stub
+						if(getMovedDistance()>0.2f*CAMERA_HEIGHT){
+							if(presentState==STATE_LEVEL_SELECT)
+								loadScenes(STATE_MAIN_MENU, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN);
+						}
+						super.generalEffect();
+					}
+				};
+				levelSelectScene.attachChild(levelScrollSprite2.getSprite());
 
 				// level을 고르는 버튼들
 				
@@ -331,6 +356,7 @@ public class StartActivity extends BaseGameActivity {
 						public boolean onAreaTouched(
 								TouchEvent pSceneTouchEvent,
 								float pTouchAreaLocalX, float pTouchAreaLocalY) {
+							
 
 							if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
 								isFocused = true;
@@ -338,8 +364,15 @@ public class StartActivity extends BaseGameActivity {
 								presentFocus = FOCUS_LEVEL_SELECT;
 								mScrollDetector.onTouchEvent(pSceneTouchEvent);
 							}
-							if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP)
+							if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_MOVE){
+								if(!isFocused){
+									mScrollDetector2.onTouchEvent(pSceneTouchEvent);
+								}
+							}
+							if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP){
 								isFocused = false;
+								presentFocus = FOCUS_NONE;
+							}
 							return true;
 						}
 						
@@ -357,10 +390,16 @@ public class StartActivity extends BaseGameActivity {
 					Text levelText = new Text(0, 0, mBasicFont, "level"+(i+1), ("level"+(i+1)).length(), vertexBufferObjectManager);
 					
 					float levelText_X = levelMainSprite_X + (levelMainSprite[i].getWidth() - levelText.getWidth())/2;
-					float levelText_Y = levelMainSprite_Y + (levelMainSprite[i].getHeight() - levelText.getHeight())/2;
-					
+					float levelText_Y = levelMainSprite_Y + levelMainSprite[i].getHeight();
+
 					levelText.setPosition(levelText_X, levelText_Y);
 					
+					Rectangle rect = new Rectangle(0,0,levelMainSprite[i].getWidth(),levelText.getHeight(), vertexBufferObjectManager);
+					
+					rect.setColor(1, 1, 1);
+					rect.setPosition(levelMainSprite_X, levelText_Y);
+
+					levelScrollSprite.attachChild(rect);
 					levelScrollSprite.attachChild(levelText);
 					
 										
@@ -401,12 +440,16 @@ public class StartActivity extends BaseGameActivity {
 
 				levelScrollSprite.setPosition(100, (CAMERA_HEIGHT-levelScrollSprite.getHeight())/2);
 
-				levelSelectScene.attachChild(levelScrollSprite.getSprite());
+				/////////////////////////////////////////////////////////////////////////////////////////////////////
+				levelScrollSprite2.attachChild(levelScrollSprite.getSprite());
+//				levelSelectScene.attachChild(levelScrollSprite.getSprite());
 
 				scrollBar = new Rectangle(0,0,CAMERA_WIDTH*(levelScrollSprite.getWidth()/levelScrollSprite.getLengthX()),30,vertexBufferObjectManager);
-				levelScrollSprite.setScrollBar(scrollBar,0,CAMERA_HEIGHT-30,CAMERA_WIDTH,30,new Color(100,100,100));
-				
-				levelSelectScene.attachChild(scrollBar);
+				levelScrollSprite.setScrollBar(scrollBar,0,CAMERA_HEIGHT-30,CAMERA_WIDTH,30,new Color(0,0.5f,0.5f));
+	
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+				levelScrollSprite2.attachChild(scrollBar);
+//				levelSelectScene.attachChild(scrollBar);
 				
 				
 				// 이전화면으로
@@ -423,17 +466,14 @@ public class StartActivity extends BaseGameActivity {
 					public void onScrollFinished(ScrollDetector pScollDetector, int pPointerID,
 							float pDistanceX, float pDistanceY) {
 						// TODO Auto-generated method stub
-						levelSelectScene.setY(0);
-						
+						presentFocus = FOCUS_NONE;
 					}
 					
 					@Override
 					public void onScroll(ScrollDetector pScollDetector, int pPointerID,
 							float pDistanceX, float pDistanceY) {
 						if(presentState == STATE_LEVEL_SELECT){
-							pDistanceY/=1.5;
-							levelSelectScene.setY(levelSelectScene.getY()+pDistanceY);
-//							loadScene(STATE_MAIN_MENU);
+							levelScrollSprite2.scroll(pDistanceY);
 						}
 					}
 				});
@@ -441,8 +481,7 @@ public class StartActivity extends BaseGameActivity {
 			}
 			for(int i=0;i<MAX_LEVEL;i++)	sceneManager.registerTouchArea(levelMainSprite[i]);
 			sceneManager.registerTouchArea(levelSelectBackSprite);
-//			sceneManager.setScene(levelSelectScene,SceneManager.EFFECT_MOVE_UP, SceneManager.EFFECT_MOVE_UP);
-			sceneManager.setScene(levelSelectScene,SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN);
+			sceneManager.setScene(levelSelectScene, out_Effect, in_Effect);
 
 			break;
 
@@ -550,6 +589,7 @@ public class StartActivity extends BaseGameActivity {
 	}
 
 	protected void updateObject() {
+
 		switch (presentState) {
 
 		case STATE_MAIN_LOGO:
@@ -564,13 +604,18 @@ public class StartActivity extends BaseGameActivity {
 			break;
 
 		case STATE_MAIN_MENU:
+			if(levelScrollSprite2!=null)
+				levelScrollSprite2.generalEffect();
+
 			break;
 			
 		case STATE_LEVEL_SELECT:
 			if(presentFocus != FOCUS_LEVEL_SELECT){
 				//속도 가속효과
 				levelScrollSprite.generalEffect();
-				
+			}
+			if(presentFocus != FOCUS_LEVEL_SCENE_MOVE){
+				levelScrollSprite2.generalEffect();
 			}
 			break;
 
@@ -587,7 +632,7 @@ public class StartActivity extends BaseGameActivity {
 			switch(presentState){
 			case STATE_LEVEL_SELECT:
 				if(sceneManager.isAnimating() == false)
-					loadScenes(STATE_MAIN_MENU);
+					loadScenes(STATE_MAIN_MENU, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN);
 				break;
 
 			case STATE_MAIN_MENU:
