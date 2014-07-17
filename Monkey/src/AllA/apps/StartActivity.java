@@ -96,8 +96,8 @@ public class StartActivity extends BaseGameActivity {
 	private Sprite splash;
 	private Rectangle scrollBar;
 	Sprite levelMainSprite[] = new Sprite[MAX_LEVEL];
-	private ScrollSprite levelScrollSprite;
-	private ScrollSprite levelScrollSprite2;
+	private ScrollLayer levelScrollLayer;
+	private ScrollLayer levelScrollLayer2;
 //	private Sprite MainLogoSprite;
 	private Sprite levelSelectButtonSprite;
 	private Sprite levelSelectBackSprite;
@@ -329,7 +329,7 @@ public class StartActivity extends BaseGameActivity {
 				levelSelectScene.attachChild(levelSelectBackSprite);
 
 				/////////////////////////////////////////////////////////////////////////////////////////////////////
-				levelScrollSprite2 = new ScrollSprite(ScrollSprite.SCROLL_IN_Y,	 CAMERA_WIDTH, CAMERA_HEIGHT){
+				levelScrollLayer2 = new ScrollLayer(ScrollLayer.SCROLL_IN_Y,	 CAMERA_WIDTH, CAMERA_HEIGHT){
 					@Override
 					public void generalEffect() {
 						// TODO Auto-generated method stub
@@ -340,11 +340,11 @@ public class StartActivity extends BaseGameActivity {
 						super.generalEffect();
 					}
 				};
-				levelSelectScene.attachChild(levelScrollSprite2.getSprite());
+				levelSelectScene.attachChild(levelScrollLayer2.getLayer());
 
 				// level을 고르는 버튼들
 				
-				levelScrollSprite = new ScrollSprite(ScrollSprite.SCROLL_IN_X,CAMERA_WIDTH-200,400);
+				levelScrollLayer = new ScrollLayer(ScrollLayer.SCROLL_IN_X,CAMERA_WIDTH-200,400);
 
 				for (int i = 0; i < MAX_LEVEL; i++) {
 					levelMainSprite[i] = new Sprite(0, 0,
@@ -383,7 +383,7 @@ public class StartActivity extends BaseGameActivity {
 					float levelMainSprite_Y = 0;
 
 					levelMainSprite[i].setPosition(levelMainSprite_X, levelMainSprite_Y);
-					levelScrollSprite.attachChild(levelMainSprite[i]);
+					levelScrollLayer.attachChild(levelMainSprite[i]);
 
 					
 					Text levelText = new Text(0, 0, mBasicFont, "level"+(i+1), ("level"+(i+1)).length(), vertexBufferObjectManager);
@@ -398,14 +398,14 @@ public class StartActivity extends BaseGameActivity {
 					rect.setColor(1, 1, 1);
 					rect.setPosition(levelMainSprite_X, levelText_Y);
 
-					levelScrollSprite.attachChild(rect);
-					levelScrollSprite.attachChild(levelText);
+					levelScrollLayer.attachChild(rect);
+					levelScrollLayer.attachChild(levelText);
 					
 										
 					
 				}
 
-				levelScrollSprite.setPosition(
+				levelScrollLayer.setPosition(
 						100,
 						(CAMERA_HEIGHT-levelMainSprite[0].getHeight())/2);
 				
@@ -431,24 +431,20 @@ public class StartActivity extends BaseGameActivity {
 						// TODO Auto-generated method stub
 						if(presentState == STATE_LEVEL_SELECT){
 //							pDistanceX/=1.5;
-							levelScrollSprite.scroll(pDistanceX);
+							levelScrollLayer.scroll(pDistanceX);
 
 						}
 					}
 				});
 
-				levelScrollSprite.setPosition(100, (CAMERA_HEIGHT-levelScrollSprite.getHeight())/2);
+				levelScrollLayer.setPosition(100, (CAMERA_HEIGHT-levelScrollLayer.getHeight())/2);
 
-				/////////////////////////////////////////////////////////////////////////////////////////////////////
-				levelScrollSprite2.attachChild(levelScrollSprite.getSprite());
-//				levelSelectScene.attachChild(levelScrollSprite.getSprite());
+				levelScrollLayer2.attachChild(levelScrollLayer.getLayer());
 
-				scrollBar = new Rectangle(0,0,CAMERA_WIDTH*(levelScrollSprite.getWidth()/levelScrollSprite.getLengthX()),30,vertexBufferObjectManager);
-				levelScrollSprite.setScrollBar(scrollBar,0,CAMERA_HEIGHT-30,CAMERA_WIDTH,30,new Color(0,0.5f,0.5f));
+				scrollBar = new Rectangle(0,0,CAMERA_WIDTH*(levelScrollLayer.getWidth()/levelScrollLayer.getLengthX()),30,vertexBufferObjectManager);
+				levelScrollLayer.setScrollBar(scrollBar,0,CAMERA_HEIGHT-30,CAMERA_WIDTH,30,new Color(0,0.5f,0.5f));
 	
-/////////////////////////////////////////////////////////////////////////////////////////////////////
-				levelScrollSprite2.attachChild(scrollBar);
-//				levelSelectScene.attachChild(scrollBar);
+				levelScrollLayer2.attachChild(scrollBar);
 				
 				
 				// 이전화면으로
@@ -473,7 +469,7 @@ public class StartActivity extends BaseGameActivity {
 							float pDistanceX, float pDistanceY) {
 						if(presentState == STATE_LEVEL_SELECT){
 							pDistanceY*=2;
-							levelScrollSprite2.scroll(pDistanceY);
+							levelScrollLayer2.scroll(pDistanceY);
 						}
 					}
 				});
@@ -601,18 +597,18 @@ public class StartActivity extends BaseGameActivity {
 			break;
 
 		case STATE_MAIN_MENU:
-			if(levelScrollSprite2!=null)
-				levelScrollSprite2.generalEffect();
+			if(levelScrollLayer2!=null)
+				levelScrollLayer2.generalEffect();
 
 			break;
 			
 		case STATE_LEVEL_SELECT:
 			if(presentFocus != FOCUS_LEVEL_SELECT){
 				//속도 가속효과
-				levelScrollSprite.generalEffect();
+				levelScrollLayer.generalEffect();
 			}
 			if(presentFocus != FOCUS_LEVEL_SCENE_MOVE){
-				levelScrollSprite2.generalEffect();
+				levelScrollLayer2.generalEffect();
 			}
 			break;
 
