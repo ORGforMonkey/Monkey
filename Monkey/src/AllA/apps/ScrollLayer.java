@@ -8,13 +8,13 @@ import org.andengine.entity.text.Text;
 import org.andengine.util.color.Color;
 
 
-public class ScrollSprite{
+public class ScrollLayer{
 	// Constants
 	static final int SCROLL_IN_X = 0;
 	static final int SCROLL_IN_Y = 1;
 
 	// Variables
-	Entity scrollSprite;
+	Layer scrollLayer;
 	float pX;
 	float pY;
 	float Width;
@@ -39,14 +39,14 @@ public class ScrollSprite{
 	// ===========================================================
 	// Constructors
 	// ===========================================================
-	ScrollSprite(int direction){
-		scrollSprite = new Entity();
+	ScrollLayer(int direction){
+		scrollLayer = new Layer();
 		scroll_direction = direction;
 	}
 
 	
-	ScrollSprite(int direction, float width, float height){
-		scrollSprite = new Entity();
+	ScrollLayer(int direction, float width, float height){
+		scrollLayer = new Layer();
 		scroll_direction = direction;
 
 		Width = width;
@@ -61,8 +61,8 @@ public class ScrollSprite{
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
-	public Entity getSprite(){
-		return scrollSprite;
+	public Layer getLayer(){
+		return scrollLayer;
 	}
 		
 	public float getWidth(){
@@ -96,7 +96,7 @@ public class ScrollSprite{
 	public void setPosition(float pX, float pY){
 		this.pX = pX;
 		this.pY = pY;
-		scrollSprite.setPosition(pX, pY);
+		scrollLayer.setPosition(pX, pY);
 	}
 
 
@@ -107,7 +107,7 @@ public class ScrollSprite{
 
 	
 	public void attachChild(Sprite pSprite){
-		scrollSprite.attachChild(pSprite);
+		scrollLayer.attachChild(pSprite);
 
 		// Scroll객체의 크기 갱신 (무조건 (0,0)부터 길이로 측정)
 		if(pSprite.getX()+pSprite.getWidth() > Length_X)
@@ -118,7 +118,7 @@ public class ScrollSprite{
 	}
 
 	public void attachChild(Text pText){
-		scrollSprite.attachChild(pText);
+		scrollLayer.attachChild(pText);
 
 		// Scroll객체의 크기 갱신 (무조건 (0,0)부터 길이로 측정)
 		if(pText.getX()+pText.getWidth() > Length_X)
@@ -130,7 +130,7 @@ public class ScrollSprite{
 	
 	
 	public void attachChild(Rectangle pRect){
-		scrollSprite.attachChild(pRect);
+		scrollLayer.attachChild(pRect);
 
 		// Scroll객체의 크기 갱신 (무조건 (0,0)부터 길이로 측정)
 		if(pRect.getX()+pRect.getWidth() > Length_X)
@@ -142,7 +142,7 @@ public class ScrollSprite{
 	
 	
 	public void attachChild(Entity pEntity){
-		scrollSprite.attachChild(pEntity);
+		scrollLayer.attachChild(pEntity);
 	}
 	
 	
@@ -178,9 +178,9 @@ public class ScrollSprite{
 	// scroll_rate에 맞춰 Scene을 직접 이동 (위치 갱신)
 	public void updateScroll(){
 		if(scroll_direction == SCROLL_IN_X)
-			scrollSprite.setX(pX - scroll_rate * (Length_X - Width) );
+			scrollLayer.setX(pX - scroll_rate * (Length_X - Width) );
 		if(scroll_direction == SCROLL_IN_Y)
-			scrollSprite.setY(pY - scroll_rate * (Length_Y - Height) );			
+			scrollLayer.setY(pY - scroll_rate * (Length_Y - Height) );			
 
 		updateScrollBar();
 	}

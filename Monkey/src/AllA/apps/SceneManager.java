@@ -12,10 +12,12 @@ import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.IBackground;
 
+import android.util.Log;
+
 public class SceneManager {
 	
 	// Constants
-	
+
 	static final int EFFECT_NONE 			= Integer.valueOf("0", 2);
 		// MOVEMENT_EFFECT
 	static final int EFFECT_MOVE_UP			= Integer.valueOf("1", 2);
@@ -99,13 +101,14 @@ public class SceneManager {
 	
 	public void setScene(Entity pLayer, final int out_Effect, final int in_Effect){
 		mEngine.setScene(primaryScene);
-
+		
 		if(attachedLayer==null){
 			primaryScene.detachChildren();
 			attachedLayer = pLayer;
 			primaryScene.attachChild(pLayer);
 			return;
 		}
+		
 
 		nextAttachedLayer = pLayer;
 		nextAttachedLayer.setVisible(false);
@@ -239,8 +242,8 @@ public class SceneManager {
 	// ===========================================================
 	// Methods
 	// ===========================================================
-	Entity CreateLayer(){
-		Entity newLayer = new Entity();
+	Layer CreateLayer(){
+		Layer newLayer = new Layer();
 		return newLayer;
 	}
 

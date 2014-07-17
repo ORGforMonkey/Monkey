@@ -32,7 +32,9 @@ import org.andengine.util.color.Color;
 
 
 
+
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.KeyEvent;
 
 /**
@@ -94,8 +96,8 @@ public class StartActivity extends BaseGameActivity {
 	private Sprite splash;
 	private Rectangle scrollBar;
 	Sprite levelMainSprite[] = new Sprite[MAX_LEVEL];
-	private ScrollSprite levelScrollSprite;
-	private ScrollSprite levelScrollSprite2;
+	private ScrollLayer levelScrollLayer;
+	private ScrollLayer levelScrollLayout2;
 	private Sprite MainLogoSprite;
 	private Sprite levelSelectButtonSprite;
 	private Sprite levelSelectBackSprite;
@@ -103,12 +105,13 @@ public class StartActivity extends BaseGameActivity {
 	
 	// Scene
 	private Scene splashScene;
-	private Entity mainLogoScene;
-	private Entity mainMenuScene;
-	private Entity levelSelectScene;
+	private Layer mainLogoLayer;
+	private Layer mainMenuLayer;
+	private Layer levelSelectLayer;
 	
-	// Scene Manager
+	// Managers
 	private SceneManager sceneManager;
+	private ResourceManager resourceManager;
 
 
 	private int presentState;
@@ -147,50 +150,16 @@ public class StartActivity extends BaseGameActivity {
 
 	public void loadResources() {
 		
-		// 실제로 사용될 이미지들 Load
+		for (int i = 0; i < 4; i++)
+			resourceManager.loadImage("back"+i, "back"+(i+1)+".png", 1280, 720);
 
-		for (int i = 0; i < 4; i++) {
-			this.mBitmapTextureAtlas[i] = new BitmapTextureAtlas(
-					this.getTextureManager(), 1920, 1920,
-					TextureOptions.BILINEAR);
+		for (int i = 0; i < MAX_LEVEL; i++)
+			resourceManager.loadImage("level"+i, "level"+(i+1)+"/main_level.png", 400, 400);
 
-			this.mBackgroundTextureRegion[i] = BitmapTextureAtlasTextureRegionFactory
-					.createFromAsset(this.mBitmapTextureAtlas[i], this, "back"
-							+ (i + 1) + ".png", 0, 0);
-
-			this.mBitmapTextureAtlas[i].load();
-		}
-
-		for (int i = 0; i < MAX_LEVEL; i++) {
-			levelMainTextureAtlas[i] = new BitmapTextureAtlas(
-					this.getTextureManager(), 400, 400, TextureOptions.BILINEAR);
-
-			levelMainTextureRegion[i] = BitmapTextureAtlasTextureRegionFactory
-					.createFromAsset(levelMainTextureAtlas[i], this, "level"
-							+ (i + 1) + "/main_level.png", 0, 0);
-			
-			levelMainTextureAtlas[i].load();
-		}
-
-		mainLogoTextureAtlas = new BitmapTextureAtlas(getTextureManager(),
-				1280, 720, TextureOptions.BILINEAR);
-		mainLogoTextureRegion = BitmapTextureAtlasTextureRegionFactory
-				.createFromAsset(mainLogoTextureAtlas, this, "StartLogo.png",
-						0, 0);
-		mainLogoTextureAtlas.load();
-
-		main_LevelSelectButton_TextureAtlas = new BitmapTextureAtlas(
-				getTextureManager(), 400, 200, TextureOptions.BILINEAR);
-		main_LevelSelectButton_TextureRegion = BitmapTextureAtlasTextureRegionFactory
-				.createFromAsset(main_LevelSelectButton_TextureAtlas, this,
-						"menu_selectlevel.png", 0, 0);
-		main_LevelSelectButton_TextureAtlas.load();
-
-		// 실제 사용할 Font
-		mBasicFont = FontFactory.create(this.getFontManager(),
-				this.getTextureManager(), 256, 256,
-				Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD), 32);
-		mBasicFont.load();
+		resourceManager.loadImage("mainLogo", "mainLogo.png", 1280, 720);
+		resourceManager.loadImage("levelButton", "menu_selectlevel.png", 400, 200);
+		
+		resourceManager.loadFont("font1", 256, 256, Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD), 32);
 
 	}
 	
@@ -215,9 +184,12 @@ public class StartActivity extends BaseGameActivity {
 
 		case STATE_MAIN_LOGO:
 
-			if (mainLogoScene == null) {
+			if (mainLogoLayer == null) {
 
-				mainLogoScene = sceneManager.CreateLayer();
+				mainLogoLayer = sceneManager.CreateLayer();
+
+				// TODO : test
+				mainLogoTextureRegion = resourceManager.getRegion("mainLogo");
 
 				MainLogoSprite = new Sprite(0, 0, mainLogoTextureRegion,
 						vertexBufferObjectManager) {
@@ -234,10 +206,12 @@ public class StartActivity extends BaseGameActivity {
 
 					}
 				};
+
 				MainLogoSprite.setScale(1);
-				mainLogoScene.attachChild(MainLogoSprite);
+				mainLogoLayer.attachChild(MainLogoSprite);
 
-
+				// TODO:
+				mBasicFont = resourceManager.getFont("font1");
 				touchToCountinue = new Text(0, 0, mBasicFont,
 						"Touch Screen to Continue", 25,
 						vertexBufferObjectManager);
@@ -245,25 +219,29 @@ public class StartActivity extends BaseGameActivity {
 						(CAMERA_WIDTH - touchToCountinue.getWidth()) / 2,
 						CAMERA_HEIGHT - 100);
 				touchToCountinue.setAlpha(0);
-				mainLogoScene.attachChild(touchToCountinue);
+				
+				mainLogoLayer.attachChild(touchToCountinue);
 
 			}
 			sceneManager.registerTouchArea(MainLogoSprite);
-			sceneManager.setScene(mainLogoScene, out_Effect, in_Effect);
-
+			sceneManager.setScene(mainLogoLayer, out_Effect, in_Effect);
 			break;
 
 		case STATE_MAIN_MENU:
 
-			if (mainMenuScene == null) {
+			if (mainMenuLayer == null) {
 				
-				mainMenuScene = sceneManager.CreateLayer();
+				mainMenuLayer = sceneManager.CreateLayer();
 
+				mBackgroundTextureRegion[1] = resourceManager.getRegion("back1");
+				// TODO : mBackgroundTextureRegion[1]
 				Sprite MainMenuBackSprite = new Sprite(0, 0,
 						mBackgroundTextureRegion[1], vertexBufferObjectManager);
 				MainMenuBackSprite.setScale(1);
-				mainMenuScene.attachChild(MainMenuBackSprite);
+				mainMenuLayer.attachChild(MainMenuBackSprite);
 
+				// TODO : test
+				main_LevelSelectButton_TextureRegion = resourceManager.getRegion("levelButton");
 				levelSelectButtonSprite = new Sprite(0, 0,
 						main_LevelSelectButton_TextureRegion,
 						vertexBufferObjectManager) {
@@ -287,30 +265,31 @@ public class StartActivity extends BaseGameActivity {
 								.getWidth()) / 2,
 								(CAMERA_HEIGHT - levelSelectButtonSprite
 										.getHeight()) / 2);
-				mainMenuScene.attachChild(levelSelectButtonSprite);
+				mainMenuLayer.attachChild(levelSelectButtonSprite);
 
 
 
 			}
 			sceneManager.registerTouchArea(levelSelectButtonSprite);
-			sceneManager.setScene(mainMenuScene,out_Effect,in_Effect);
+			sceneManager.setScene(mainMenuLayer,out_Effect,in_Effect);
 
 			break;
 
 		case STATE_LEVEL_SELECT:
 
-			if (levelSelectScene == null) {
-				levelSelectScene = sceneManager.CreateLayer();
+			if (levelSelectLayer == null) {
+				levelSelectLayer = sceneManager.CreateLayer();
 				
+				 mBackgroundTextureRegion[2] = resourceManager.getRegion("back2");
+				// TODO : mBackgroundTextureRegion[2]
 				levelSelectBackSprite = new Sprite(0, 0,
-						mBackgroundTextureRegion[2], vertexBufferObjectManager) {
+						 mBackgroundTextureRegion[2], vertexBufferObjectManager) {
 					boolean isFocused = false;
 					@Override
 					public boolean onAreaTouched(
 							TouchEvent pSceneTouchEvent,
 							float pTouchAreaLocalX,
 							float pTouchAreaLocalY) {
-						// TODO Auto-generated method stub
 						if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
 							isFocused = true;
 						if(isFocused){
@@ -327,13 +306,12 @@ public class StartActivity extends BaseGameActivity {
 					}
 				};
 				levelSelectBackSprite.setScale(1);
-				levelSelectScene.attachChild(levelSelectBackSprite);
+				levelSelectLayer.attachChild(levelSelectBackSprite);
 
 				/////////////////////////////////////////////////////////////////////////////////////////////////////
-				levelScrollSprite2 = new ScrollSprite(ScrollSprite.SCROLL_IN_Y,	 CAMERA_WIDTH, CAMERA_HEIGHT){
+				levelScrollLayout2 = new ScrollLayer(ScrollLayer.SCROLL_IN_Y,	 CAMERA_WIDTH, CAMERA_HEIGHT){
 					@Override
 					public void generalEffect() {
-						// TODO Auto-generated method stub
 						if(getMovedDistance()>0.2f*CAMERA_HEIGHT){
 							if(presentState==STATE_LEVEL_SELECT)
 								loadScenes(STATE_MAIN_MENU, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN);
@@ -341,13 +319,16 @@ public class StartActivity extends BaseGameActivity {
 						super.generalEffect();
 					}
 				};
-				levelSelectScene.attachChild(levelScrollSprite2.getSprite());
+				levelSelectLayer.attachChild(levelScrollLayout2.getLayer());
 
 				// level을 고르는 버튼들
 				
-				levelScrollSprite = new ScrollSprite(ScrollSprite.SCROLL_IN_X,CAMERA_WIDTH-200,400);
+				levelScrollLayer = new ScrollLayer(ScrollLayer.SCROLL_IN_X,CAMERA_WIDTH-200,400);
 
 				for (int i = 0; i < MAX_LEVEL; i++) {
+					
+					levelMainTextureRegion[i] = resourceManager.getRegion("level"+i);
+					// TODO : levelMainTextureRegion[i]
 					levelMainSprite[i] = new Sprite(0, 0,
 							levelMainTextureRegion[i],
 							vertexBufferObjectManager) {
@@ -384,9 +365,10 @@ public class StartActivity extends BaseGameActivity {
 					float levelMainSprite_Y = 0;
 
 					levelMainSprite[i].setPosition(levelMainSprite_X, levelMainSprite_Y);
-					levelScrollSprite.attachChild(levelMainSprite[i]);
+					levelScrollLayer.attachChild(levelMainSprite[i]);
 
-					
+					Log.e("test1", "test");
+					mBasicFont = resourceManager.getFont("font1");
 					Text levelText = new Text(0, 0, mBasicFont, "level"+(i+1), ("level"+(i+1)).length(), vertexBufferObjectManager);
 					
 					float levelText_X = levelMainSprite_X + (levelMainSprite[i].getWidth() - levelText.getWidth())/2;
@@ -399,14 +381,14 @@ public class StartActivity extends BaseGameActivity {
 					rect.setColor(1, 1, 1);
 					rect.setPosition(levelMainSprite_X, levelText_Y);
 
-					levelScrollSprite.attachChild(rect);
-					levelScrollSprite.attachChild(levelText);
+					levelScrollLayer.attachChild(rect);
+					levelScrollLayer.attachChild(levelText);
 					
 										
 					
 				}
 
-				levelScrollSprite.setPosition(
+				levelScrollLayer.setPosition(
 						100,
 						(CAMERA_HEIGHT-levelMainSprite[0].getHeight())/2);
 				
@@ -432,23 +414,23 @@ public class StartActivity extends BaseGameActivity {
 						// TODO Auto-generated method stub
 						if(presentState == STATE_LEVEL_SELECT){
 							pDistanceX/=1.5;
-							levelScrollSprite.scroll(pDistanceX);
+							levelScrollLayer.scroll(pDistanceX);
 
 						}
 					}
 				});
 
-				levelScrollSprite.setPosition(100, (CAMERA_HEIGHT-levelScrollSprite.getHeight())/2);
+				levelScrollLayer.setPosition(100, (CAMERA_HEIGHT-levelScrollLayer.getHeight())/2);
 
 				/////////////////////////////////////////////////////////////////////////////////////////////////////
-				levelScrollSprite2.attachChild(levelScrollSprite.getSprite());
+				levelScrollLayout2.attachChild(levelScrollLayer.getLayer());
 //				levelSelectScene.attachChild(levelScrollSprite.getSprite());
 
-				scrollBar = new Rectangle(0,0,CAMERA_WIDTH*(levelScrollSprite.getWidth()/levelScrollSprite.getLengthX()),30,vertexBufferObjectManager);
-				levelScrollSprite.setScrollBar(scrollBar,0,CAMERA_HEIGHT-30,CAMERA_WIDTH,30,new Color(0,0.5f,0.5f));
+				scrollBar = new Rectangle(0,0,CAMERA_WIDTH*(levelScrollLayer.getWidth()/levelScrollLayer.getLengthX()),30,vertexBufferObjectManager);
+				levelScrollLayer.setScrollBar(scrollBar,0,CAMERA_HEIGHT-30,CAMERA_WIDTH,30,new Color(0,0.5f,0.5f));
 	
 /////////////////////////////////////////////////////////////////////////////////////////////////////
-				levelScrollSprite2.attachChild(scrollBar);
+				levelScrollLayout2.attachChild(scrollBar);
 //				levelSelectScene.attachChild(scrollBar);
 				
 				
@@ -473,7 +455,7 @@ public class StartActivity extends BaseGameActivity {
 					public void onScroll(ScrollDetector pScollDetector, int pPointerID,
 							float pDistanceX, float pDistanceY) {
 						if(presentState == STATE_LEVEL_SELECT){
-							levelScrollSprite2.scroll(pDistanceY);
+							levelScrollLayout2.scroll(pDistanceY);
 						}
 					}
 				});
@@ -481,7 +463,7 @@ public class StartActivity extends BaseGameActivity {
 			}
 			for(int i=0;i<MAX_LEVEL;i++)	sceneManager.registerTouchArea(levelMainSprite[i]);
 			sceneManager.registerTouchArea(levelSelectBackSprite);
-			sceneManager.setScene(levelSelectScene, out_Effect, in_Effect);
+			sceneManager.setScene(levelSelectLayer, out_Effect, in_Effect);
 
 			break;
 
@@ -551,6 +533,13 @@ public class StartActivity extends BaseGameActivity {
 		sceneManager.setBackground(new Background(0, 0, 0));
 		initSplashScene();
 		
+		//ResourceManager설정
+		resourceManager = new ResourceManager();
+		resourceManager.setAssetBasePath("gfx/");
+		resourceManager.setContext(this);
+		resourceManager.setFontManager(getFontManager());
+		resourceManager.setTextureManager(getTextureManager());
+		
 		pOnCreateSceneCallback.onCreateSceneFinished(this.splashScene);
 
 	}
@@ -604,18 +593,18 @@ public class StartActivity extends BaseGameActivity {
 			break;
 
 		case STATE_MAIN_MENU:
-			if(levelScrollSprite2!=null)
-				levelScrollSprite2.generalEffect();
+			if(levelScrollLayout2!=null)
+				levelScrollLayout2.generalEffect();
 
 			break;
 			
 		case STATE_LEVEL_SELECT:
 			if(presentFocus != FOCUS_LEVEL_SELECT){
 				//속도 가속효과
-				levelScrollSprite.generalEffect();
+				levelScrollLayer.generalEffect();
 			}
 			if(presentFocus != FOCUS_LEVEL_SCENE_MOVE){
-				levelScrollSprite2.generalEffect();
+				levelScrollLayout2.generalEffect();
 			}
 			break;
 
