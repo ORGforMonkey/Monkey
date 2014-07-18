@@ -18,13 +18,15 @@ import android.util.Log;
 
 public class ResourceManager {
 	
-	HashMap<String, BitmapTextureAtlas> AtlasResources;
-	HashMap<String, ITextureRegion> RegionResources;
-	HashMap<String, IFont> FontResources;
-	TextureManager mTextureManager;
-	FontManager mFontManager;
-	Context mContext;
-	
+	static HashMap<String, BitmapTextureAtlas>	AtlasResources	= new HashMap<String, BitmapTextureAtlas>();
+	static HashMap<String, ITextureRegion>		RegionResources	= new HashMap<String, ITextureRegion>();
+	static HashMap<String, IFont> 				FontResources	= new HashMap<String, IFont>();
+
+	static TextureManager	mTextureManager;
+	static FontManager		mFontManager;
+
+	static Context mContext;
+	/*
 	ResourceManager(){
 		AtlasResources = new HashMap<String, BitmapTextureAtlas>();
 		RegionResources = new HashMap<String, ITextureRegion>();
@@ -36,29 +38,29 @@ public class ResourceManager {
 		RegionResources = new HashMap<String, ITextureRegion>(Capacity);
 		FontResources = new HashMap<String, IFont>(Capacity);
 	}
-	
+*/	
 	////////////////////////////////////
 	// Setter
 	////////////////////////////////////
-	public void setTextureManager(TextureManager pTextureManager){
+	static public void setTextureManager(TextureManager pTextureManager){
 		mTextureManager = pTextureManager;
 	}
 	
-	public void setFontManager(FontManager pFontManager){
+	static public void setFontManager(FontManager pFontManager){
 		mFontManager = pFontManager;
 	}
 
-	public void setAssetBasePath(String pAssetBasePath){
+	static public void setAssetBasePath(String pAssetBasePath){
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath(pAssetBasePath);
 	}
 
-	public void setContext(Context pContext){
+	static public void setContext(Context pContext){
 		mContext = pContext;
 	}
 	
 	
 	
-	public void loadImage(String keys, String pAssetPath, int pWidth, int pHeight){
+	static public void loadImage(String keys, String pAssetPath, int pWidth, int pHeight){
 		BitmapTextureAtlas newTextureAtlas;
 		ITextureRegion newTextureRegion;
 		
@@ -75,7 +77,7 @@ public class ResourceManager {
 		RegionResources.put(keys, newTextureRegion);
 	}
 	
-	public void loadFont(String keys, int pTextureWidth, int pTextureHeight, Typeface pTypeface, float pSize){
+	static public void loadFont(String keys, int pTextureWidth, int pTextureHeight, Typeface pTypeface, float pSize){
 		if(FontResources.containsKey(keys))
 			return;
 		
@@ -89,21 +91,21 @@ public class ResourceManager {
 	// Getter
 	////////////////////////////////////
 	
-	public BitmapTextureAtlas getAtlas(String keys){
+	static public BitmapTextureAtlas getAtlas(String keys){
 		if(AtlasResources.containsKey(keys) == false)
 			return null;
 		
 		return AtlasResources.get(keys);
 	}
 	
-	public ITextureRegion getRegion(String keys){
+	static public ITextureRegion getRegion(String keys){
 		if(RegionResources.containsKey(keys) == false)
 			return null;
 		
 		return RegionResources.get(keys);
 	}
 	
-	public IFont getFont(String keys){
+	static public IFont getFont(String keys){
 		if(FontResources.containsKey(keys) == false)
 			return null;
 		

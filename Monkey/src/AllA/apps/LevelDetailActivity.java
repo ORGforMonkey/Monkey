@@ -7,7 +7,7 @@ import org.andengine.input.touch.TouchEvent;
 import android.content.Context;
 import android.graphics.Typeface;
 
-public class MainLogoActivity extends SimpleBaseActivity{
+public class LevelDetailActivity extends SimpleBaseActivity{
 	/* variable */
 	
 	private Sprite mainLogoSprite;
@@ -15,7 +15,7 @@ public class MainLogoActivity extends SimpleBaseActivity{
 	float sw_touchToContinue = -1;
 
 	/* Constructor */
-	MainLogoActivity(Context mcontext){
+	LevelDetailActivity(Context mcontext){
 		super(mcontext);
 	}
 	
@@ -24,7 +24,7 @@ public class MainLogoActivity extends SimpleBaseActivity{
 	@Override
 	public void loadResources()
 	{	
-		ResourceManager.loadImage("mainLogo", "mainLogo.png", 1280, 720);
+//		for(int i=0;i<MAX_LEVEL;i++)	resourceManager.loadImage("leveldetailbutton"+i, "leveldetailbutton.png", 1280, 720);
 		ResourceManager.loadFont("font1", 256, 256, Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD), 32);
 
 		super.loadResources();
@@ -45,17 +45,7 @@ public class MainLogoActivity extends SimpleBaseActivity{
 					final float pTouchAreaLocalX,
 					final float pTouchAreaLocalY) {
 				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
-					SimpleBaseActivity nextActivity = SceneManager.getActivity("mainMenuActivity");
 
-					if(nextActivity != null){
-
-						nextActivity.loadScene();
-						nextActivity.registerTouchAreatoSceneManager();
-						int out_Effect = SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_OUT;
-						int in_Effect  = SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_IN;
-	
-						SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
-					}
 				}
 				return true;
 			}
@@ -97,6 +87,7 @@ public class MainLogoActivity extends SimpleBaseActivity{
 			sw_touchToContinue = +1;
 		touchToContinue.setAlpha(touchToContinue.getAlpha() + sw_touchToContinue / 60);
 	}
+	
 	
 	/**/
 	

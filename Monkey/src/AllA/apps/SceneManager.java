@@ -1,13 +1,12 @@
 package AllA.apps;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.andengine.engine.Engine;
 import org.andengine.engine.handler.timer.ITimerCallback;
 import org.andengine.engine.handler.timer.TimerHandler;
 import org.andengine.entity.Entity;
 import org.andengine.entity.IEntity;
-import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.IBackground;
@@ -37,26 +36,28 @@ public class SceneManager {
 //	private ArrayList<Entity> mLayers = new ArrayList<Entity>();
 	
 	// Variables
-	Engine mEngine;
-	Scene primaryScene;
-	Entity attachedLayer;
-	Entity nextAttachedLayer;
-	TimerHandler timer;
+	static Engine mEngine;
+	static Scene primaryScene;
+	static Entity attachedLayer;
+	static Entity nextAttachedLayer;
+	static TimerHandler timer;
 	
-	float Width = StartActivity.CAMERA_WIDTH;
-	float Height = StartActivity.CAMERA_HEIGHT;
+	static float Width = StartActivity.CAMERA_WIDTH;
+	static float Height = StartActivity.CAMERA_HEIGHT;
 	
-	float FPS = 60.0f;
+	static float FPS = 60.0f;
 	
-	
-	boolean isAnimating = false;
+	static SimpleBaseActivity presentActivity;
+	static HashMap<String, SimpleBaseActivity>	registeredActivities	= new HashMap<String, SimpleBaseActivity>();
+
+	static boolean isAnimating = false;
 	
 	
 	
 	// ===========================================================
 	// Constructors
 	// ===========================================================	
-	SceneManager(Engine pEngine){
+/*	SceneManager(Engine pEngine){
 		mEngine = pEngine;
 		init(null);
 	}
@@ -66,10 +67,17 @@ public class SceneManager {
 		init(pLayer);
 	}
 	
-	void init(Entity pLayer){
+	static void init(Entity pLayer){
 		primaryScene = new Scene();
 		attachedLayer = pLayer;
 		if(pLayer!=null)	primaryScene.attachChild(pLayer);
+		primaryScene.setTouchAreaBindingOnActionDownEnabled(true);
+				
+		mEngine.setScene(primaryScene);
+	}*/
+	
+	static void init(){
+		primaryScene = new Scene();
 		primaryScene.setTouchAreaBindingOnActionDownEnabled(true);
 				
 		mEngine.setScene(primaryScene);
@@ -78,11 +86,27 @@ public class SceneManager {
 	// ===========================================================
 	// Getter & Setter
 	// ===========================================================
-	public Scene getScene(){
+	
+	static public void registerEngine(Engine pEngine){
+		mEngine = pEngine;
+	}
+	
+	static public void registerActivity(String keys, SimpleBaseActivity pActivity){
+		registeredActivities.put(keys, pActivity);
+	}
+	
+	static public SimpleBaseActivity getActivity(String keys){
+		if(!registeredActivities.containsKey(keys))
+			return null;
+		
+		return registeredActivities.get(keys);
+	}
+	
+	static public Scene getScene(){
 		return primaryScene;
 	}
 
-	public void setAlphaAll(float alpha, IEntity pIEntity){
+	static public void setAlphaAll(float alpha, IEntity pIEntity){
 		if(pIEntity==null)
 			return;
 		pIEntity.setAlpha(alpha);
@@ -93,20 +117,28 @@ public class SceneManager {
 		}
 	}
 	
-	public void setActivity(SimpleBaseActivity pActivity){
+	
+	static public void setActivity(SimpleBaseActivity pActivity){
+		clearTouchAreas();
+		presentActivity = pActivity;
+		presentActivity.loadScene();
+		presentActivity.registerTouchAreatoSceneManager();
 		setScene(pActivity.mainLayer);
 	}	
 
-	public void setActivity(SimpleBaseActivity pActivity, final int out_Effect, final int in_Effect){
+	static public void setActivity(SimpleBaseActivity pActivity, final int out_Effect, final int in_Effect){
+		clearTouchAreas();
+		presentActivity = pActivity;
+		presentActivity.loadScene();
+		presentActivity.registerTouchAreatoSceneManager();
 		setScene(pActivity.mainLayer, out_Effect, in_Effect);
 	}	
 	
-	
-	public void setScene(Entity pLayer){
+	static public void setScene(Entity pLayer){
 		setScene(pLayer,EFFECT_NONE,EFFECT_NONE);
 	}
 	
-	public void setScene(Entity pLayer, final int out_Effect, final int in_Effect){
+	static public void setScene(Entity pLayer, final int out_Effect, final int in_Effect){
 		mEngine.setScene(primaryScene);
 
 		if(attachedLayer==null){
@@ -236,11 +268,11 @@ public class SceneManager {
 	}
 	
 	
-	public void setBackground(IBackground pBackground){
+	static public void setBackground(IBackground pBackground){
 		primaryScene.setBackground(pBackground);
 	}
 	
-	public void setBackgroundEnabled(boolean pEnabled){
+	static public void setBackgroundEnabled(boolean pEnabled){
 		primaryScene.setBackgroundEnabled(pEnabled);
 	}
 	
@@ -248,22 +280,44 @@ public class SceneManager {
 	// ===========================================================
 	// Methods
 	// ===========================================================
-	Entity CreateLayer(){
+	static Entity CreateLayer(){
 		Entity newLayer = new Entity();
 		return newLayer;
 	}
 
-	public void clearTouchAreas(){
+	static public void clearTouchAreas(){
 		primaryScene.clearTouchAreas();
 	}
 		
-	public void registerTouchArea(ITouchArea pTouchArea){
+	static public void registerTouchArea(ITouchArea pTouchArea){
 		primaryScene.registerTouchArea(pTouchArea);
 		primaryScene.setTouchAreaBindingOnActionDownEnabled(true);
 	}
 	
-	public boolean isAnimating(){
+	static public boolean isAnimating(){
 		return isAnimating;
 	}
+	
+	static public SimpleBaseActivity getPresentActivity(){
+		return presentActivity;
+	}
+	
+	static public boolean isPresentActivity(SimpleBaseActivity pActivity){
+		if(pActivity.equals(presentActivity))
+			return true;
+		
+		return false;
+	}
+	
+	static public boolean isPresentActivity(String keys){
+		if(!registeredActivities.containsKey(keys))
+			return false;
+		
+		if(registeredActivities.get(keys).equals(presentActivity))
+			return true;
+		
+		return false;
+	}
+	
 
 }

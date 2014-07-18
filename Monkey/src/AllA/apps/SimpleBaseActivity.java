@@ -11,7 +11,6 @@ public class SimpleBaseActivity{
 	/* variable */
 	protected Layer mainLayer;
 	
-	protected ResourceManager resourceManager;
 	protected VertexBufferObjectManager vertexBufferObjectManager;
 	
 	protected int Width;
@@ -33,9 +32,8 @@ public class SimpleBaseActivity{
 		context = mContext;
 	}
 	
-	SimpleBaseActivity(ResourceManager pResourceManager, VertexBufferObjectManager pVertexBufferObjectManager){
+	SimpleBaseActivity(VertexBufferObjectManager pVertexBufferObjectManager){
 		mainLayer = new Layer();		
-		resourceManager = pResourceManager;
 		vertexBufferObjectManager = pVertexBufferObjectManager;	
 	}
 
@@ -49,7 +47,7 @@ public class SimpleBaseActivity{
 	public void loadScene(){
 		isLoaded = true;
 	}
-	public void registerTouchAreatoSceneManager(SceneManager pSceneManager){
+	public void registerTouchAreatoSceneManager(){
 		
 	}
 	
@@ -62,11 +60,6 @@ public class SimpleBaseActivity{
 	public void setSize(int width, int height){
 		Width = width;
 		Height = height;
-	}
-	
-	public void setResourceManager (ResourceManager pResourceManager)
-	{
-		resourceManager = pResourceManager;
 	}
 
 	

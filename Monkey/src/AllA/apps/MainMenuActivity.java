@@ -21,8 +21,8 @@ public class MainMenuActivity extends SimpleBaseActivity{
 	@Override
 	public void loadResources()
 	{
-		resourceManager.loadImage("back2", "back2.png", 1280, 720);
-		resourceManager.loadImage("levelButton", "menu_selectlevel.png", 400, 200);
+		ResourceManager.loadImage("back2", "back2.png", 1280, 720);
+		ResourceManager.loadImage("levelButton", "menu_selectlevel.png", 400, 200);
 
 		super.loadResources();
 	}
@@ -35,20 +35,27 @@ public class MainMenuActivity extends SimpleBaseActivity{
 		
 		// background
 		
-		MainMenuBackSprite = new Sprite(0, 0, resourceManager.getRegion("back2"), vertexBufferObjectManager);
+		MainMenuBackSprite = new Sprite(0, 0, ResourceManager.getRegion("back2"), vertexBufferObjectManager);
 		mainLayer.attachChild(MainMenuBackSprite);
 
 		
 		// components
 
-		levelSelectButtonSprite = new Sprite(0, 0, resourceManager.getRegion("levelButton"), vertexBufferObjectManager) {
+		levelSelectButtonSprite = new Sprite(0, 0, ResourceManager.getRegion("levelButton"), vertexBufferObjectManager) {
 			@Override
 			public boolean onAreaTouched(
 					final TouchEvent pSceneTouchEvent,
 					final float pTouchAreaLocalX,
 					final float pTouchAreaLocalY) {
 				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
-					((StartActivity) context).loadScenes(StartActivity.STATE_LEVEL_SELECT, SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_IN);
+					SimpleBaseActivity nextActivity = SceneManager.getActivity("levelSelectActivity");
+
+					nextActivity.loadScene();
+					nextActivity.registerTouchAreatoSceneManager();
+					int out_Effect = SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_OUT;
+					int in_Effect  = SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_IN;
+
+					SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
 				}
 				return true;
 
@@ -66,11 +73,11 @@ public class MainMenuActivity extends SimpleBaseActivity{
 	}
 	
 	@Override
-	public void registerTouchAreatoSceneManager(SceneManager pSceneManager){
+	public void registerTouchAreatoSceneManager(){
 
-		pSceneManager.registerTouchArea(levelSelectButtonSprite);
+		SceneManager.registerTouchArea(levelSelectButtonSprite);
 		
-		super.registerTouchAreatoSceneManager(pSceneManager);
+		super.registerTouchAreatoSceneManager();
 	}
 	
 	

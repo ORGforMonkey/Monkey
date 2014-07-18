@@ -45,10 +45,10 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	@Override
 	public void loadResources()
 	{	
-		resourceManager.loadImage("back3", "back3.png", 1280, 720);
-		resourceManager.loadFont("font1", 256, 256, Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD), 32);
+		ResourceManager.loadImage("back3", "back3.png", 1280, 720);
+		ResourceManager.loadFont("font1", 256, 256, Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD), 32);
 		for(int i=1;i<=MAX_LEVEL;i++)
-			resourceManager.loadImage("level"+i, "level"+i+"/main_level.png", 400, 400);
+			ResourceManager.loadImage("level"+i, "level"+i+"/main_level.png", 400, 400);
 
 		super.loadResources();
 	}
@@ -60,7 +60,7 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			return;
 		
 		// background
-		levelSelectBackSprite = new Sprite(0, 0, resourceManager.getRegion("back3"), vertexBufferObjectManager) {
+		levelSelectBackSprite = new Sprite(0, 0, ResourceManager.getRegion("back3"), vertexBufferObjectManager) {
 			boolean isFocused = false;
 			@Override
 			public boolean onAreaTouched(
@@ -93,8 +93,14 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			public void generalEffect() {
 
 				if(getMovedDistance()>0.2f*Height){
-					if(StartActivity.presentState==StartActivity.STATE_LEVEL_SELECT)
-						((StartActivity) context).loadScenes(StartActivity.STATE_MAIN_MENU, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN);
+					if(SceneManager.isPresentActivity("levelSelectActivity")){
+						SimpleBaseActivity nextActivity = SceneManager.getActivity("mainMenuActivity");
+
+						int out_Effect = SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT;
+						int in_Effect  = SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN;
+
+						SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
+					}
 				}
 				super.generalEffect();
 			}
@@ -106,7 +112,7 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 		levelScrollLayer = new ScrollLayer(ScrollLayer.SCROLL_IN_X,Width-200,400);
 
 		for (int i = 1; i <= MAX_LEVEL; i++) {
-			levelMainSprite[i] = new Sprite(0, 0, resourceManager.getRegion("level"+i), vertexBufferObjectManager) {
+			levelMainSprite[i] = new Sprite(0, 0, ResourceManager.getRegion("level"+i), vertexBufferObjectManager) {
 				boolean isFocused = false;
 				@Override
 				public boolean onAreaTouched(
@@ -144,7 +150,7 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 
 			
 			
-			Text levelText = new Text(0, 0, resourceManager.getFont("font1"), "level"+i, ("level"+i).length(), vertexBufferObjectManager);
+			Text levelText = new Text(0, 0, ResourceManager.getFont("font1"), "level"+i, ("level"+i).length(), vertexBufferObjectManager);
 			
 			float levelText_X = levelMainSprite_X + (levelMainSprite[i].getWidth() - levelText.getWidth())/2;
 			float levelText_Y = levelMainSprite_Y + levelMainSprite[i].getHeight();
@@ -169,24 +175,21 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			@Override
 			public void onScrollStarted(ScrollDetector pScollDetector, int pPointerID,
 					float pDistanceX, float pDistanceY) {
-				// TODO Auto-generated method stub						
 			}
 			
 			@Override
 			public void onScrollFinished(ScrollDetector pScollDetector, int pPointerID,
 					float pDistanceX, float pDistanceY) {
-				// TODO Auto-generated method stub
 				presentFocus = FOCUS_NONE;
 			}
 			
 			@Override
 			public void onScroll(ScrollDetector pScollDetector, int pPointerID,
 					float pDistanceX, float pDistanceY) {
-				// TODO Auto-generated method stub
-//				if(presentState == STATE_LEVEL_SELECT){
-//					pDistanceX/=1.5;
-					levelScrollLayer.scroll(pDistanceX);
-//				}
+				
+				if(SceneManager.isPresentActivity("levelSelectActivity")){
+					levelScrollLayer.scroll(pDistanceX*StartActivity.CAMERA_WIDTH/StartActivity.PHONE_WIDTH);
+				}
 			}
 		});
 
@@ -206,24 +209,21 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			@Override
 			public void onScrollStarted(ScrollDetector pScollDetector, int pPointerID,
 					float pDistanceX, float pDistanceY) {
-				// TODO Auto-generated method stub
 				
 			}
 			
 			@Override
 			public void onScrollFinished(ScrollDetector pScollDetector, int pPointerID,
 					float pDistanceX, float pDistanceY) {
-				// TODO Auto-generated method stub
 				presentFocus = FOCUS_NONE;
 			}
 			
 			@Override
 			public void onScroll(ScrollDetector pScollDetector, int pPointerID,
 					float pDistanceX, float pDistanceY) {
-//				if(presentState == STATE_LEVEL_SELECT){
-//					pDistanceY*=2;
-					levelScrollLayer2.scroll(pDistanceY);
-//				}
+				if(SceneManager.isPresentActivity("levelSelectActivity")){
+					levelScrollLayer2.scroll(pDistanceY*StartActivity.CAMERA_HEIGHT/StartActivity.PHONE_HEIGHT);
+				}
 			}
 		});
 
@@ -232,12 +232,12 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	}
 	
 	@Override
-	public void registerTouchAreatoSceneManager(SceneManager pSceneManager){
+	public void registerTouchAreatoSceneManager(){
 
-		pSceneManager.registerTouchArea(levelSelectBackSprite);
-		for(int i=1;i<=MAX_LEVEL;i++)	pSceneManager.registerTouchArea(levelMainSprite[i]);
+		SceneManager.registerTouchArea(levelSelectBackSprite);
+		for(int i=1;i<=MAX_LEVEL;i++)	SceneManager.registerTouchArea(levelMainSprite[i]);
 		
-		super.registerTouchAreatoSceneManager(pSceneManager);
+		super.registerTouchAreatoSceneManager();
 	}
 	
 	
