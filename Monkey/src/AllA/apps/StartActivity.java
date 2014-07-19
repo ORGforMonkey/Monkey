@@ -50,8 +50,6 @@ public class StartActivity extends BaseGameActivity {
 	// Fields
 	// ===========================================================
 	// for Splash
-	private BitmapTextureAtlas splashTextureAtlas;
-	private ITextureRegion splashTextureRegion;
 	private Sprite splash;
 	private Scene splashScene;
 	
@@ -61,6 +59,7 @@ public class StartActivity extends BaseGameActivity {
 	private SimpleBaseActivity mainLogoActivity;
 	private SimpleBaseActivity mainMenuActivity;
 	private SimpleBaseActivity levelSelectActivity;
+	private SimpleBaseActivity levelDetailActivity;
 
 
 	// Handler
@@ -107,23 +106,20 @@ public class StartActivity extends BaseGameActivity {
 	public void initActivity(){
 
 		//mainLogoActivity 초기화
-		mainLogoActivity = new MainLogoActivity(this);
-		mainLogoActivity.setSize(WIDTH, HEIGHT);
-		mainLogoActivity.setVertexBufferObjectManager(getVertexBufferObjectManager());
-		SceneManager.registerActivity("mainLogoActivity",mainLogoActivity);
+		mainLogoActivity = new MainLogoActivity(WIDTH, HEIGHT, getVertexBufferObjectManager());
+		SceneManager.registerActivity("mainLogoActivity", mainLogoActivity);
 
 		//mainMenuActivity 초기화
-		mainMenuActivity = new MainMenuActivity(this);
-		mainMenuActivity.setSize(WIDTH, HEIGHT);
-		mainMenuActivity.setVertexBufferObjectManager(getVertexBufferObjectManager());
+		mainMenuActivity = new MainMenuActivity(WIDTH, HEIGHT, getVertexBufferObjectManager());
 		SceneManager.registerActivity("mainMenuActivity", mainMenuActivity);
 
 		//levelSelectActivity 초기화
-		levelSelectActivity = new LevelSelectActivity(this);
-		levelSelectActivity.setSize(WIDTH, HEIGHT);
-		levelSelectActivity.setVertexBufferObjectManager(getVertexBufferObjectManager());
+		levelSelectActivity = new LevelSelectActivity(WIDTH, HEIGHT, getVertexBufferObjectManager());
 		SceneManager.registerActivity("levelSelectActivity", levelSelectActivity);
 	
+		//levelDetailActivity 초기화
+		levelDetailActivity = new LevelSelectActivity(WIDTH, HEIGHT, getVertexBufferObjectManager());
+		SceneManager.registerActivity("levelDetailActivity", levelDetailActivity);
 	}
 
 	public void loadResources() {
@@ -131,17 +127,8 @@ public class StartActivity extends BaseGameActivity {
 		mainLogoActivity.loadResources();
 		mainMenuActivity.loadResources();
 		levelSelectActivity.loadResources();
+		levelDetailActivity.loadResources();
 		
-	}
-	
-public void loadScenes(SimpleBaseActivity nextActivity, int out_Effect, int in_Effect) {
-
-		// 실제로 사용될 scene들을 구성
-
-		this.mEngine.registerUpdateHandler(new FPSLogger());
-
-		SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
-
 	}
 
 	private void initSplashScene() {
@@ -177,7 +164,7 @@ public void loadScenes(SimpleBaseActivity nextActivity, int out_Effect, int in_E
 			throws Exception {
 
 		initSplashScene();
-		pOnCreateSceneCallback.onCreateSceneFinished(this.splashScene);
+		pOnCreateSceneCallback.onCreateSceneFinished(splashScene);
 
 	}
 
@@ -196,6 +183,7 @@ public void loadScenes(SimpleBaseActivity nextActivity, int out_Effect, int in_E
 		});
 
 		// Loading
+		mEngine.registerUpdateHandler(new FPSLogger());
 		mEngine.registerUpdateHandler(new TimerHandler(0.01f,
 				new ITimerCallback() {
 					public void onTimePassed(final TimerHandler pTimerHandler) {
@@ -204,7 +192,8 @@ public void loadScenes(SimpleBaseActivity nextActivity, int out_Effect, int in_E
 						// 실제 사용할 이미지들 Load
 						initActivity();
 						loadResources();
-						loadScenes(mainLogoActivity, SceneManager.EFFECT_NONE, SceneManager.EFFECT_NONE);
+						
+						SceneManager.setActivity(mainLogoActivity, SceneManager.EFFECT_NONE, SceneManager.EFFECT_NONE);
 
 						mEngine.registerUpdateHandler(onGameTimer);
 					}
@@ -230,14 +219,19 @@ public void loadScenes(SimpleBaseActivity nextActivity, int out_Effect, int in_E
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		// TODO Auto-generated method stub
 		if(keyCode == KeyEvent.KEYCODE_BACK){
-			if(SceneManager.presentActivity == levelSelectActivity)
-				if(SceneManager.isAnimating() == false)
-					loadScenes(mainMenuActivity, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT, SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN);
-
-			return true;
-
+			
+			if( SceneManager.presentActivity != null ){
+				// 이전 씬이 있을 떄에만 back버튼으로 귀환한다.
+				if(SceneManager.presentActivity.getBackActivity() != null){
+					// 이전 씬으로 귀환
+					SceneManager.goBack();
+					// 종료하지 않음
+					return true;
+				}
+			}
 		}
-		return super.onKeyDown(keyCode, event);
+
+		return super.onKeyDown(keyCode, event);		
 	}
 
 	// ===========================================================

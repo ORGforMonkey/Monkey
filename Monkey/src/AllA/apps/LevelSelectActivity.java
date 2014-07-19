@@ -7,6 +7,7 @@ import org.andengine.input.touch.TouchEvent;
 import org.andengine.input.touch.detector.ScrollDetector;
 import org.andengine.input.touch.detector.SurfaceScrollDetector;
 import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
+import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.color.Color;
 
 import android.content.Context;
@@ -32,12 +33,11 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	SurfaceScrollDetector mScrollDetector;
 	SurfaceScrollDetector mScrollDetector2;
 
-	private int presentFocus;
+	private int presentFocus = FOCUS_NONE;
 	
 	/* Constructor */
-	LevelSelectActivity(Context mcontext){
-		super(mcontext);
-		presentFocus = FOCUS_NONE;
+	LevelSelectActivity(int width, int height,VertexBufferObjectManager pVertexBufferObjectManager) {
+		super(width,height,pVertexBufferObjectManager);
 	}
 	
 	/* methods */
@@ -94,12 +94,12 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 
 				if(getMovedDistance()>0.2f*Height){
 					if(SceneManager.isPresentActivity("levelSelectActivity")){
-						SimpleBaseActivity nextActivity = SceneManager.getActivity("mainMenuActivity");
 
-						int out_Effect = SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT;
-						int in_Effect  = SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN;
-
-						SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
+/*						int back_out_Effect = SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT;
+						int back_in_Effect  = SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN;
+						SceneManager.goBack(back_out_Effect,back_in_Effect);
+*/
+						SceneManager.goBack();
 					}
 				}
 				super.generalEffect();

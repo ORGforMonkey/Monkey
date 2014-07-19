@@ -3,6 +3,7 @@ package AllA.apps;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 import android.content.Context;
 import android.graphics.Typeface;
@@ -15,8 +16,8 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 	float sw_touchToContinue = -1;
 
 	/* Constructor */
-	LevelDetailActivity(Context mcontext){
-		super(mcontext);
+	LevelDetailActivity(int width, int height,VertexBufferObjectManager pVertexBufferObjectManager) {
+		super(width,height,pVertexBufferObjectManager);
 	}
 	
 	/* methods */

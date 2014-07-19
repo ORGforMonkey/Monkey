@@ -3,8 +3,8 @@ package AllA.apps;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.text.Text;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
-import android.content.Context;
 import android.graphics.Typeface;
 
 public class MainLogoActivity extends SimpleBaseActivity{
@@ -15,12 +15,13 @@ public class MainLogoActivity extends SimpleBaseActivity{
 	float sw_touchToContinue = -1;
 
 	/* Constructor */
-	MainLogoActivity(Context mcontext){
-		super(mcontext);
+	MainLogoActivity(int width, int height,VertexBufferObjectManager pVertexBufferObjectManager) {
+		super(width,height,pVertexBufferObjectManager);
 	}
 	
 	/* methods */
 	
+
 	@Override
 	public void loadResources()
 	{	
@@ -45,17 +46,13 @@ public class MainLogoActivity extends SimpleBaseActivity{
 					final float pTouchAreaLocalX,
 					final float pTouchAreaLocalY) {
 				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
+
 					SimpleBaseActivity nextActivity = SceneManager.getActivity("mainMenuActivity");
 
-					if(nextActivity != null){
+					int out_Effect = SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_OUT;
+					int in_Effect  = SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_IN;
+					SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
 
-						nextActivity.loadScene();
-						nextActivity.registerTouchAreatoSceneManager();
-						int out_Effect = SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_OUT;
-						int in_Effect  = SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_IN;
-	
-						SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
-					}
 				}
 				return true;
 			}
