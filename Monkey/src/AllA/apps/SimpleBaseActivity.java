@@ -60,6 +60,9 @@ public class SimpleBaseActivity{
 		
 	}
 	
+	public void deleteSprites(){
+	}
+	
 	
 	
 	public void setSize(int width, int height){

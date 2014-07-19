@@ -31,8 +31,8 @@ public class MainMenuActivity extends SimpleBaseActivity{
 	@Override
 	public void loadScene()
 	{
-		if(isLoaded())
-			return;
+//		if(isLoaded())
+//			return;
 		
 		// background
 		
@@ -54,8 +54,7 @@ public class MainMenuActivity extends SimpleBaseActivity{
 					
 					int back_out_Effect = SceneManager.EFFECT_MOVE_UP;
 					int back_in_Effect  = SceneManager.EFFECT_MOVE_UP;
-//					nextActivity.setBackActivity(thisActivity,back_out_Effect, back_in_Effect);
-					nextActivity.setBackActivity(SceneManager.getActivity("mainMenuActivity"),back_out_Effect, back_in_Effect);
+					nextActivity.setBackActivity(thisActivity,back_out_Effect, back_in_Effect);
 
 					int out_Effect = SceneManager.EFFECT_MOVE_DOWN;
 					int in_Effect  = SceneManager.EFFECT_MOVE_DOWN;
@@ -75,6 +74,13 @@ public class MainMenuActivity extends SimpleBaseActivity{
 
 		
 		super.loadScene();
+	}
+	
+	@Override
+	public void deleteSprites() {
+/*		MainMenuBackSprite.dispose();
+		levelSelectButtonSprite.dispose();
+*/		super.deleteSprites();
 	}
 	
 	@Override

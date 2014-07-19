@@ -57,24 +57,6 @@ public class SceneManager {
 	// ===========================================================
 	// Constructors
 	// ===========================================================	
-/*	SceneManager(Engine pEngine){
-		mEngine = pEngine;
-		init(null);
-	}
-
-	SceneManager(Engine pEngine, Entity pLayer){
-		mEngine = pEngine;
-		init(pLayer);
-	}
-	
-	static void init(Entity pLayer){
-		primaryScene = new Scene();
-		attachedLayer = pLayer;
-		if(pLayer!=null)	primaryScene.attachChild(pLayer);
-		primaryScene.setTouchAreaBindingOnActionDownEnabled(true);
-				
-		mEngine.setScene(primaryScene);
-	}*/
 	
 	static void init(){
 		primaryScene = new Scene();
@@ -137,17 +119,13 @@ public class SceneManager {
 	
 	static public void setActivity(SimpleBaseActivity pActivity){
 
-		clearTouchAreas();
-		presentActivity = pActivity;
-		presentActivity.loadScene();
-		presentActivity.registerTouchAreatoSceneManager();
-
-		setScene(pActivity.mainLayer);
+		setActivity(pActivity, EFFECT_NONE, EFFECT_NONE);
 	}	
 
 	static public void setActivity(SimpleBaseActivity pActivity, final int out_Effect, final int in_Effect){
 
 		clearTouchAreas();
+		if(presentActivity!=null)	presentActivity.deleteSprites();
 		presentActivity = pActivity;
 		presentActivity.loadScene();
 		presentActivity.registerTouchAreatoSceneManager();
@@ -299,10 +277,6 @@ public class SceneManager {
 	// ===========================================================
 	// Methods
 	// ===========================================================
-	static Entity CreateLayer(){
-		Entity newLayer = new Entity();
-		return newLayer;
-	}
 
 	static public void clearTouchAreas(){
 		primaryScene.clearTouchAreas();
