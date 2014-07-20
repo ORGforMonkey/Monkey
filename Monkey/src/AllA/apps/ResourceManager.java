@@ -12,9 +12,7 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.region.ITextureRegion;
 
 import android.content.Context;
-import android.graphics.Region;
 import android.graphics.Typeface;
-import android.util.Log;
 
 public class ResourceManager {
 	
@@ -26,19 +24,7 @@ public class ResourceManager {
 	static FontManager		mFontManager;
 
 	static Context mContext;
-	/*
-	ResourceManager(){
-		AtlasResources = new HashMap<String, BitmapTextureAtlas>();
-		RegionResources = new HashMap<String, ITextureRegion>();
-		FontResources = new HashMap<String, IFont>();
-	}
 	
-	ResourceManager(int Capacity){
-		AtlasResources = new HashMap<String, BitmapTextureAtlas>(Capacity);
-		RegionResources = new HashMap<String, ITextureRegion>(Capacity);
-		FontResources = new HashMap<String, IFont>(Capacity);
-	}
-*/	
 	////////////////////////////////////
 	// Setter
 	////////////////////////////////////
@@ -67,7 +53,7 @@ public class ResourceManager {
 		if(AtlasResources.containsKey(keys))
 			return;
 		
-		newTextureAtlas = new BitmapTextureAtlas(mTextureManager, pWidth, pHeight, TextureOptions.BILINEAR);
+		newTextureAtlas = new BitmapTextureAtlas(mTextureManager, pWidth, pHeight, TextureOptions.DEFAULT);
 
 		newTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(newTextureAtlas, mContext, pAssetPath, 0, 0);
 

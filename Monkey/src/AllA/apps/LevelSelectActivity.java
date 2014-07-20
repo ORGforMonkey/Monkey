@@ -7,9 +7,9 @@ import org.andengine.input.touch.TouchEvent;
 import org.andengine.input.touch.detector.ScrollDetector;
 import org.andengine.input.touch.detector.SurfaceScrollDetector;
 import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
+import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.color.Color;
 
-import android.content.Context;
 import android.graphics.Typeface;
 
 public class LevelSelectActivity extends SimpleBaseActivity{
@@ -19,7 +19,7 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	private static final int FOCUS_LEVEL_SELECT = 1;
 	private static final int FOCUS_LEVEL_SCENE_MOVE = 2;
 
-	private static final int MAX_LEVEL = 6;
+	private int MAX_LEVEL = StartActivity.MAX_LEVEL;
 
 	
 	/* variable */
@@ -32,12 +32,11 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	SurfaceScrollDetector mScrollDetector;
 	SurfaceScrollDetector mScrollDetector2;
 
-	private int presentFocus;
+	private int presentFocus = FOCUS_NONE;
 	
 	/* Constructor */
-	LevelSelectActivity(Context mcontext){
-		super(mcontext);
-		presentFocus = FOCUS_NONE;
+	LevelSelectActivity(int width, int height,VertexBufferObjectManager pVertexBufferObjectManager) {
+		super(width,height,pVertexBufferObjectManager);
 	}
 	
 	/* methods */
@@ -56,8 +55,8 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	@Override
 	public void loadScene()
 	{
-		if(isLoaded())
-			return;
+//		if(isLoaded())
+//			return;
 		
 		// background
 		levelSelectBackSprite = new Sprite(0, 0, ResourceManager.getRegion("back3"), vertexBufferObjectManager) {
@@ -94,12 +93,8 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 
 				if(getMovedDistance()>0.2f*Height){
 					if(SceneManager.isPresentActivity("levelSelectActivity")){
-						SimpleBaseActivity nextActivity = SceneManager.getActivity("mainMenuActivity");
 
-						int out_Effect = SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_OUT;
-						int in_Effect  = SceneManager.EFFECT_MOVE_UP|SceneManager.EFFECT_FADE_IN;
-
-						SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
+						SceneManager.goBack();
 					}
 				}
 				super.generalEffect();
@@ -112,6 +107,7 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 		levelScrollLayer = new ScrollLayer(ScrollLayer.SCROLL_IN_X,Width-200,400);
 
 		for (int i = 1; i <= MAX_LEVEL; i++) {
+			final int level = i;
 			levelMainSprite[i] = new Sprite(0, 0, ResourceManager.getRegion("level"+i), vertexBufferObjectManager) {
 				boolean isFocused = false;
 				@Override
@@ -119,7 +115,6 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 						TouchEvent pSceneTouchEvent,
 						float pTouchAreaLocalX, float pTouchAreaLocalY) {
 					
-
 					if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
 						isFocused = true;
 					if(isFocused){
@@ -134,6 +129,22 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 					if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP){
 						isFocused = false;
 						presentFocus = FOCUS_NONE;
+
+						// LevelDetailActivity로 이동
+						{
+							SimpleBaseActivity nextActivity = SceneManager.getActivity("levelDetailActivity");
+							
+							int back_out_Effect = SceneManager.EFFECT_MOVE_UP;
+							int back_in_Effect  = SceneManager.EFFECT_MOVE_UP;
+							nextActivity.setBackActivity(thisActivity,back_out_Effect, back_in_Effect);
+							((LevelDetailActivity)nextActivity).setLevel(level); //  누른 레벨을 전달
+
+							int out_Effect = SceneManager.EFFECT_MOVE_DOWN;
+							int in_Effect  = SceneManager.EFFECT_MOVE_DOWN;
+
+							SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
+
+						}
 					}
 					return true;
 				}
@@ -229,6 +240,16 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 
 
 		super.loadScene();
+	}
+	
+	@Override
+	public void deleteSprites() {
+		/*
+		for(int i=1;i<=MAX_LEVEL;i++)
+			levelMainSprite[i].dispose();
+		levelSelectBackSprite.dispose();
+		scrollBar.dispose();
+*/		super.deleteSprites();
 	}
 	
 	@Override

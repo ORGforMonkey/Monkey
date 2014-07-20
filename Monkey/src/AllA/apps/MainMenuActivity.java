@@ -2,6 +2,7 @@ package AllA.apps;
 
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 import android.content.Context;
 
@@ -12,8 +13,8 @@ public class MainMenuActivity extends SimpleBaseActivity{
 	
 
 	/* Constructor */
-	MainMenuActivity(Context mcontext){
-		super(mcontext);
+	MainMenuActivity(int width, int height,VertexBufferObjectManager pVertexBufferObjectManager) {
+		super(width,height,pVertexBufferObjectManager);
 	}
 	
 	/* methods */
@@ -30,8 +31,8 @@ public class MainMenuActivity extends SimpleBaseActivity{
 	@Override
 	public void loadScene()
 	{
-		if(isLoaded())
-			return;
+//		if(isLoaded())
+//			return;
 		
 		// background
 		
@@ -48,12 +49,15 @@ public class MainMenuActivity extends SimpleBaseActivity{
 					final float pTouchAreaLocalX,
 					final float pTouchAreaLocalY) {
 				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP) {
+					
 					SimpleBaseActivity nextActivity = SceneManager.getActivity("levelSelectActivity");
+					
+					int back_out_Effect = SceneManager.EFFECT_MOVE_UP;
+					int back_in_Effect  = SceneManager.EFFECT_MOVE_UP;
+					nextActivity.setBackActivity(thisActivity,back_out_Effect, back_in_Effect);
 
-					nextActivity.loadScene();
-					nextActivity.registerTouchAreatoSceneManager();
-					int out_Effect = SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_OUT;
-					int in_Effect  = SceneManager.EFFECT_MOVE_DOWN|SceneManager.EFFECT_FADE_IN;
+					int out_Effect = SceneManager.EFFECT_MOVE_DOWN;
+					int in_Effect  = SceneManager.EFFECT_MOVE_DOWN;
 
 					SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
 				}
@@ -70,6 +74,13 @@ public class MainMenuActivity extends SimpleBaseActivity{
 
 		
 		super.loadScene();
+	}
+	
+	@Override
+	public void deleteSprites() {
+/*		MainMenuBackSprite.dispose();
+		levelSelectButtonSprite.dispose();
+*/		super.deleteSprites();
 	}
 	
 	@Override

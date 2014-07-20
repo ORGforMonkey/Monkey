@@ -16,25 +16,30 @@ public class SimpleBaseActivity{
 	protected int Width;
 	protected int Height;
 	
-	protected Context context;
+	protected boolean isLoaded = false;
+	protected boolean isAlwaysUpdated = true;
 	
-	boolean isLoaded = false;
-	boolean isAlwaysUpdated = true;
+	protected SimpleBaseActivity thisActivity;
+	protected SimpleBaseActivity backActivity;
+	protected int backInEffect;
+	protected int backOutEffect;
 	
 	/* Constructor */
 	
 	SimpleBaseActivity() {
 		mainLayer = new Layer();
+		thisActivity = this;
+		backActivity = null;
 	}
+
 	
-	SimpleBaseActivity(Context mContext) {
-		mainLayer = new Layer();
-		context = mContext;
-	}
-	
-	SimpleBaseActivity(VertexBufferObjectManager pVertexBufferObjectManager){
+	SimpleBaseActivity(int width, int height,VertexBufferObjectManager pVertexBufferObjectManager){
 		mainLayer = new Layer();		
 		vertexBufferObjectManager = pVertexBufferObjectManager;	
+		thisActivity = this;
+		backActivity = null;
+		Width = width;
+		Height = height;
 	}
 
 	
@@ -55,11 +60,49 @@ public class SimpleBaseActivity{
 		
 	}
 	
+	public void deleteSprites(){
+	}
+	
 	
 	
 	public void setSize(int width, int height){
 		Width = width;
 		Height = height;
+	}
+	
+	
+	public void setBackActivity(SimpleBaseActivity pActivity, int out_Effect, int in_Effect){
+		backActivity = pActivity;
+		backOutEffect = out_Effect;
+		backInEffect = in_Effect;
+	}
+	
+	public void setBackActivity(SimpleBaseActivity pActivity){
+		backActivity = pActivity;
+		backOutEffect = SceneManager.EFFECT_NONE;
+		backInEffect = SceneManager.EFFECT_NONE;
+	}
+
+	public void setBackEffect(int out_Effect, int in_Effect){
+		backOutEffect = out_Effect;
+		backInEffect = in_Effect;		
+	}
+	
+	public void goBack(){
+		if(backActivity != null){
+			SceneManager.setActivity(backActivity, backOutEffect, backInEffect);
+		}
+	}
+	
+	public void goBack(int out_Effect, int in_Effect){
+		if(backActivity != null){
+			SceneManager.setActivity(backActivity, out_Effect, in_Effect);
+		}
+	}
+	
+	
+	public SimpleBaseActivity getBackActivity(){
+		return backActivity;
 	}
 
 	
