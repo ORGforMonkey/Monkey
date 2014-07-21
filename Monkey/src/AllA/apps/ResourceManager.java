@@ -17,91 +17,99 @@ import android.graphics.Typeface;
 import android.util.Log;
 
 public class ResourceManager {
-   
-   HashMap<String, BitmapTextureAtlas> AtlasResources;
-   HashMap<String, ITextureRegion> RegionResources;
-   HashMap<String, IFont> FontResources;
-   TextureManager mTextureManager;
-   FontManager mFontManager;
-   Context mContext;
-   
-   ResourceManager(){
-      AtlasResources = new HashMap<String, BitmapTextureAtlas>();
-      RegionResources = new HashMap<String, ITextureRegion>();
-      FontResources = new HashMap<String, IFont>();
-   }
-   
-   ResourceManager(int Capacity){
-      AtlasResources = new HashMap<String, BitmapTextureAtlas>(Capacity);
-      RegionResources = new HashMap<String, ITextureRegion>(Capacity);
-      FontResources = new HashMap<String, IFont>(Capacity);
-   }
-   
-   ////////////////////////////////////
-   // Setter
-   ////////////////////////////////////
-   public void setTextureManager(TextureManager pTextureManager){
-      mTextureManager = pTextureManager;
-   }
-   
-   public void setFontManager(FontManager pFontManager){
-      mFontManager = pFontManager;
-   }
+	
+	static HashMap<String, BitmapTextureAtlas>	AtlasResources	= new HashMap<String, BitmapTextureAtlas>();
+	static HashMap<String, ITextureRegion>		RegionResources	= new HashMap<String, ITextureRegion>();
+	static HashMap<String, IFont> 				FontResources	= new HashMap<String, IFont>();
 
-   public void setAssetBasePath(String pAssetBasePath){
-      BitmapTextureAtlasTextureRegionFactory.setAssetBasePath(pAssetBasePath);
-   }
+	static TextureManager	mTextureManager;
+	static FontManager		mFontManager;
 
-   public void setContext(Context pContext){
-      mContext = pContext;
-   }
-   
-   
-   
-   public void loadImage(String keys, String pAssetPath, int pWidth, int pHeight){
-      BitmapTextureAtlas newTextureAtlas;
-      ITextureRegion newTextureRegion;
-      
-      newTextureAtlas = new BitmapTextureAtlas(mTextureManager, pWidth, pHeight, TextureOptions.BILINEAR);
+	static Context mContext;
+	/*
+	ResourceManager(){
+		AtlasResources = new HashMap<String, BitmapTextureAtlas>();
+		RegionResources = new HashMap<String, ITextureRegion>();
+		FontResources = new HashMap<String, IFont>();
+	}
+	
+	ResourceManager(int Capacity){
+		AtlasResources = new HashMap<String, BitmapTextureAtlas>(Capacity);
+		RegionResources = new HashMap<String, ITextureRegion>(Capacity);
+		FontResources = new HashMap<String, IFont>(Capacity);
+	}
+*/	
+	////////////////////////////////////
+	// Setter
+	////////////////////////////////////
+	static public void setTextureManager(TextureManager pTextureManager){
+		mTextureManager = pTextureManager;
+	}
+	
+	static public void setFontManager(FontManager pFontManager){
+		mFontManager = pFontManager;
+	}
 
-      newTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(newTextureAtlas, mContext, pAssetPath, 0, 0);
+	static public void setAssetBasePath(String pAssetBasePath){
+		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath(pAssetBasePath);
+	}
 
-      newTextureAtlas.load();
-      
-      AtlasResources.put(keys, newTextureAtlas);
-      RegionResources.put(keys, newTextureRegion);
-   }
-   
-   public void loadFont(String keys, int pTextureWidth, int pTextureHeight, Typeface pTypeface, float pSize){
-      IFont newFont = FontFactory.create(mFontManager, mTextureManager, pTextureWidth, pTextureHeight, pTypeface, pSize);
-      newFont.load();
-      FontResources.put(keys, newFont);
-   }
-   
-   
-   ////////////////////////////////////
-   // Getter
-   ////////////////////////////////////
-   
-   public BitmapTextureAtlas getAtlas(String keys){
-      if(AtlasResources.containsKey(keys) == false)
-         return null;
-      
-      return AtlasResources.get(keys);
-   }
-   
-   public ITextureRegion getRegion(String keys){
-      if(RegionResources.containsKey(keys) == false)
-         return null;
-      
-      return RegionResources.get(keys);
-   }
-   
-   public IFont getFont(String keys){
-      if(FontResources.containsKey(keys) == false)
-         return null;
-      
-      return FontResources.get(keys);
-   }
+	static public void setContext(Context pContext){
+		mContext = pContext;
+	}
+	
+	
+	
+	static public void loadImage(String keys, String pAssetPath, int pWidth, int pHeight){
+		BitmapTextureAtlas newTextureAtlas;
+		ITextureRegion newTextureRegion;
+		
+		if(AtlasResources.containsKey(keys))
+			return;
+		
+		newTextureAtlas = new BitmapTextureAtlas(mTextureManager, pWidth, pHeight, TextureOptions.BILINEAR);
+
+		newTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(newTextureAtlas, mContext, pAssetPath, 0, 0);
+
+		newTextureAtlas.load();
+		
+		AtlasResources.put(keys, newTextureAtlas);
+		RegionResources.put(keys, newTextureRegion);
+	}
+	
+	static public void loadFont(String keys, int pTextureWidth, int pTextureHeight, Typeface pTypeface, float pSize){
+		if(FontResources.containsKey(keys))
+			return;
+		
+		IFont newFont = FontFactory.create(mFontManager, mTextureManager, pTextureWidth, pTextureHeight, pTypeface, pSize);
+		newFont.load();
+		FontResources.put(keys, newFont);
+	}
+	
+	
+	////////////////////////////////////
+	// Getter
+	////////////////////////////////////
+	
+	static public BitmapTextureAtlas getAtlas(String keys){
+		if(AtlasResources.containsKey(keys) == false)
+			return null;
+		
+		return AtlasResources.get(keys);
+	}
+	
+	static public ITextureRegion getRegion(String keys){
+		if(RegionResources.containsKey(keys) == false)
+			return null;
+		
+		return RegionResources.get(keys);
+	}
+	
+	static public IFont getFont(String keys){
+		if(FontResources.containsKey(keys) == false)
+			return null;
+		
+		return FontResources.get(keys);
+	}
 
 }
