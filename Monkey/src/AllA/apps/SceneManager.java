@@ -15,22 +15,22 @@ public class SceneManager {
 	
 	// Constants
 	
-	static final int EFFECT_NONE 			= Integer.valueOf("0", 2);
+	static final int EFFECT_NONE 			= Integer.valueOf("1", 2);
 		// MOVEMENT_EFFECT
-	static final int EFFECT_MOVE_UP			= Integer.valueOf("1", 2);
-	static final int EFFECT_MOVE_DOWN		= Integer.valueOf("10", 2);
-	static final int EFFECT_MOVE_LEFT		= Integer.valueOf("100", 2);
-	static final int EFFECT_MOVE_RIGHT		= Integer.valueOf("1000", 2);
+	static final int EFFECT_MOVE_UP			= Integer.valueOf("10", 2);
+	static final int EFFECT_MOVE_DOWN		= Integer.valueOf("100", 2);
+	static final int EFFECT_MOVE_LEFT		= Integer.valueOf("1000", 2);
+	static final int EFFECT_MOVE_RIGHT		= Integer.valueOf("10000", 2);
 		// SIZE_EFFECT
-	static final int EFFECT_BECOME_SMALL	= Integer.valueOf("10000", 2);
-	static final int EFFECT_BECOME_LARGE	= Integer.valueOf("100000", 2);
+	static final int EFFECT_BECOME_SMALL	= Integer.valueOf("100000", 2);
+	static final int EFFECT_BECOME_LARGE	= Integer.valueOf("1000000", 2);
 		// FADE_EFFECT
-	static final int EFFECT_FADE_OUT		= Integer.valueOf("1000000", 2);
-	static final int EFFECT_FADE_IN			= Integer.valueOf("10000000", 2);
-	static final int EFFECT_FADE_UP			= Integer.valueOf("100000000", 2);
-	static final int EFFECT_FADE_DOWN		= Integer.valueOf("1000000000", 2);
-	static final int EFFECT_FADE_LEFT		= Integer.valueOf("10000000000", 2);
-	static final int EFFECT_FADE_RIGHT		= Integer.valueOf("100000000000", 2);
+	static final int EFFECT_FADE_OUT		= Integer.valueOf("10000000", 2);
+	static final int EFFECT_FADE_IN			= Integer.valueOf("100000000", 2);
+	static final int EFFECT_FADE_UP			= Integer.valueOf("1000000000", 2);
+	static final int EFFECT_FADE_DOWN		= Integer.valueOf("10000000000", 2);
+	static final int EFFECT_FADE_LEFT		= Integer.valueOf("100000000000", 2);
+	static final int EFFECT_FADE_RIGHT		= Integer.valueOf("1000000000000", 2);
 	
 	// Entities
 //	private ArrayList<Entity> mLayers = new ArrayList<Entity>();
@@ -57,24 +57,6 @@ public class SceneManager {
 	// ===========================================================
 	// Constructors
 	// ===========================================================	
-/*	SceneManager(Engine pEngine){
-		mEngine = pEngine;
-		init(null);
-	}
-
-	SceneManager(Engine pEngine, Entity pLayer){
-		mEngine = pEngine;
-		init(pLayer);
-	}
-	
-	static void init(Entity pLayer){
-		primaryScene = new Scene();
-		attachedLayer = pLayer;
-		if(pLayer!=null)	primaryScene.attachChild(pLayer);
-		primaryScene.setTouchAreaBindingOnActionDownEnabled(true);
-				
-		mEngine.setScene(primaryScene);
-	}*/
 	
 	static void init(){
 		primaryScene = new Scene();
@@ -117,20 +99,37 @@ public class SceneManager {
 		}
 	}
 	
+	static public void goBack(){
+		if(presentActivity == null)	return;
+		SimpleBaseActivity backActivity = presentActivity.getBackActivity();
+		int back_out_Effect = presentActivity.backOutEffect;
+		int back_in_Effect = presentActivity.backInEffect;
+
+		if(backActivity == null)	return;
+		setActivity(backActivity, back_out_Effect, back_in_Effect);
+	}
+
+	static public void goBack(final int out_Effect, final int in_Effect){
+		if(presentActivity == null)	return;
+		SimpleBaseActivity backActivity = presentActivity.getBackActivity();
+
+		if(backActivity == null)	return;
+		setActivity(backActivity, out_Effect, in_Effect);
+	}
 	
 	static public void setActivity(SimpleBaseActivity pActivity){
-		clearTouchAreas();
-		presentActivity = pActivity;
-		presentActivity.loadScene();
-		presentActivity.registerTouchAreatoSceneManager();
-		setScene(pActivity.mainLayer);
+
+		setActivity(pActivity, EFFECT_NONE, EFFECT_NONE);
 	}	
 
 	static public void setActivity(SimpleBaseActivity pActivity, final int out_Effect, final int in_Effect){
+
 		clearTouchAreas();
+		if(presentActivity!=null)	presentActivity.deleteSprites();
 		presentActivity = pActivity;
 		presentActivity.loadScene();
 		presentActivity.registerTouchAreatoSceneManager();
+		
 		setScene(pActivity.mainLayer, out_Effect, in_Effect);
 	}	
 	
@@ -149,6 +148,8 @@ public class SceneManager {
 		}
 
 		nextAttachedLayer = pLayer;
+		setAlphaAll(1, nextAttachedLayer);
+		nextAttachedLayer.setPosition(0, 0);
 		nextAttachedLayer.setVisible(false);
 		primaryScene.attachChild(nextAttachedLayer);
 
@@ -171,8 +172,9 @@ public class SceneManager {
 				isAnimating = true;
 				
 				// OUT_EFFECTS
-				if(0<=outrate && outrate<=1){
+				if(0<=outrate && outrate<1+(1/FPS)/outtime){
 					if(out_Effect == EFFECT_NONE){
+						outrate = 1;
 					}
 					if((out_Effect&EFFECT_MOVE_UP) != 0){
 						attachedLayer.setY(-Height*outrate);
@@ -200,30 +202,30 @@ public class SceneManager {
 				}
 				
 				// IN_EFFECTS
-				if(0<=inrate && inrate<=1){
+				if(0<=inrate && inrate<1+(1/FPS)/intime){
 					nextAttachedLayer.setVisible(true);
 					if(in_Effect == EFFECT_NONE){
-						nextAttachedLayer.setAlpha(1);
+						inrate = 1;
 					}
 					if((in_Effect&EFFECT_MOVE_UP) != 0){
 						if(sw == 0)
 							nextAttachedLayer.setY(Height);
-						nextAttachedLayer.setY(Height*(1-outrate));
+						nextAttachedLayer.setY(Height*(1-inrate));
 					}
 					if((in_Effect&EFFECT_MOVE_DOWN) != 0){
 						if(sw == 0)
 							nextAttachedLayer.setY(-Height);
-						nextAttachedLayer.setY(-Height*(1-outrate));
+						nextAttachedLayer.setY(-Height*(1-inrate));
 					}
 					if((in_Effect&EFFECT_MOVE_LEFT) != 0){
 						if(sw == 0)
 							nextAttachedLayer.setX(Width);
-						nextAttachedLayer.setX(Width*(1-outrate));
+						nextAttachedLayer.setX(Width*(1-inrate));
 					}
 					if((in_Effect&EFFECT_MOVE_RIGHT) != 0){
 						if(sw == 0)
 							nextAttachedLayer.setX(-Width);
-						nextAttachedLayer.setX(-Width*(1-outrate));
+						nextAttachedLayer.setX(-Width*(1-inrate));
 					}
 					if((in_Effect&EFFECT_BECOME_SMALL) != 0){
 						nextAttachedLayer.setScale(2-inrate);
@@ -237,16 +239,11 @@ public class SceneManager {
 
 						if(nextAttachedLayer.getAlpha()<=1-2/FPS)
 							setAlphaAll(inrate,nextAttachedLayer);
-					}else{
-						nextAttachedLayer.setAlpha(1);
 					}
 				}
-								
-				outrate = (out_Effect==EFFECT_NONE)?1:outrate;
-				inrate = (in_Effect==EFFECT_NONE)?1:inrate;
-				
+
 				//종료 조건
-				if((inrate>outrate?inrate:outrate) >= 1){
+				if((inrate<outrate?inrate:outrate) >= 1){
 					primaryScene.detachChild(attachedLayer);
 					attachedLayer = nextAttachedLayer;
 					attachedLayer.setPosition(0, 0);
@@ -280,10 +277,6 @@ public class SceneManager {
 	// ===========================================================
 	// Methods
 	// ===========================================================
-	static Entity CreateLayer(){
-		Entity newLayer = new Entity();
-		return newLayer;
-	}
 
 	static public void clearTouchAreas(){
 		primaryScene.clearTouchAreas();
