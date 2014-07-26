@@ -33,6 +33,8 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	private static final int FOCUS_LEVEL_SCENE_MOVE = 2;
 
 	private int MAX_LEVEL = StartActivity.MAX_LEVEL;
+	
+	public static final float CLICK_DISTANCE = (float) 100.0;  /// 거리 최적화 필요
 
 	
 	/* variable */
@@ -127,7 +129,8 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			final int level = i;
 			levelMainSprite[i] = new Sprite(0, 0, ResourceManager.getRegion("level"+i), vertexBufferObjectManager) {
 				boolean isFocused = false;
-				boolean chkMove = false;   /// ACTION_MOVE 가 발생하고 난 뒤에는 클릭이 발생하지 않도록 핸들하는 변수
+//				boolean chkMove = false;   /// ACTION_MOVE 가 발생하고 난 뒤에는 클릭이 발생하지 않도록 핸들하는 변수
+				float startPosX,startPosY;
 				@Override
 				public boolean onAreaTouched(
 						TouchEvent pSceneTouchEvent,
@@ -136,7 +139,9 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 					if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
 					{
 						isFocused = true;
-						chkMove = false;
+//						chkMove = false;
+						startPosX = pSceneTouchEvent.getX();
+						startPosY = pSceneTouchEvent.getY();
 					}
 					if(isFocused){
 						presentFocus = FOCUS_LEVEL_SELECT;
@@ -147,9 +152,10 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 						if(!isFocused){
 							mScrollDetector2.onTouchEvent(pSceneTouchEvent);
 						}
-						chkMove = true;
+//						chkMove = true;
 					}
-					if(isFocused && !chkMove)   //누르고 움직이지 않았을 경우만 클릭으로 인정
+//					if(isFocused && !chkMove)   //누르고 움직이지 않았을 경우만 클릭으로 인정
+					if(isFocused && (pSceneTouchEvent.getX()-startPosX)*(pSceneTouchEvent.getX()-startPosX)+(pSceneTouchEvent.getY()-startPosY)*(pSceneTouchEvent.getY()-startPosY) < CLICK_DISTANCE)
 					{
 						selectedLevel=level;
 						mClickDetector.onManagedTouchEvent(pSceneTouchEvent);
@@ -278,7 +284,7 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 		
 		});
 		
-		mClickDetector.setTriggerClickMaximumMilliseconds(400);   // 너무 빨리 클릭될까봐 누르고 일정 시간 딜레이 후 클릭 되게
+		mClickDetector.setTriggerClickMaximumMilliseconds(800);   // 너무 빨리 클릭될까봐 누르고 일정 시간 딜레이 후 클릭 되게
 		
 		
 		
