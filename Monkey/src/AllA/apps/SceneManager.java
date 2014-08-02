@@ -11,6 +11,8 @@ import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.IBackground;
 
+import android.util.Log;
+
 public class SceneManager {
 	
 	// Constants
@@ -32,8 +34,6 @@ public class SceneManager {
 	static final int EFFECT_FADE_LEFT		= Integer.valueOf("100000000000", 2);
 	static final int EFFECT_FADE_RIGHT		= Integer.valueOf("1000000000000", 2);
 	
-	// Entities
-//	private ArrayList<Entity> mLayers = new ArrayList<Entity>();
 	
 	// Variables
 	static Engine mEngine;
@@ -123,10 +123,13 @@ public class SceneManager {
 	}	
 
 	static public void setActivity(SimpleBaseActivity pActivity, final int out_Effect, final int in_Effect){
-
 		clearTouchAreas();
-		if(presentActivity!=null)	presentActivity.deleteSprites();
+		if(presentActivity!=null){
+			presentActivity.onPause();
+			presentActivity.deleteSprites();
+		}
 		presentActivity = pActivity;
+		presentActivity.onResume();
 		presentActivity.loadScene();
 		presentActivity.registerTouchAreatoSceneManager();
 		
@@ -138,6 +141,8 @@ public class SceneManager {
 	}
 	
 	static public void setScene(Entity pLayer, final int out_Effect, final int in_Effect){
+
+		
 		mEngine.setScene(primaryScene);
 
 		if(attachedLayer==null){
@@ -153,6 +158,7 @@ public class SceneManager {
 		nextAttachedLayer.setVisible(false);
 		primaryScene.attachChild(nextAttachedLayer);
 
+		
 		//그래픽 효과 적용
 		timer = new TimerHandler(1 / FPS, true, new ITimerCallback() {
 			
@@ -262,6 +268,7 @@ public class SceneManager {
 		});
 		
 		mEngine.registerUpdateHandler(timer);
+
 	}
 	
 	

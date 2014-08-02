@@ -1,5 +1,6 @@
 package AllA.apps;
 
+import org.andengine.engine.camera.BoundCamera;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.timer.ITimerCallback;
 import org.andengine.engine.handler.timer.TimerHandler;
@@ -9,6 +10,7 @@ import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.util.FPSLogger;
+import org.andengine.input.sensor.acceleration.IAccelerationListener;
 import org.andengine.ui.activity.BaseGameActivity;
 
 import android.view.KeyEvent;
@@ -47,6 +49,7 @@ public class StartActivity extends BaseGameActivity {
 	private SimpleBaseActivity mainMenuActivity;
 	private SimpleBaseActivity levelSelectActivity;
 	private SimpleBaseActivity levelDetailActivity;
+	private SimpleBaseActivity gameActivity;
 
 	private TimerHandler onGameTimer;
 	
@@ -72,6 +75,7 @@ public class StartActivity extends BaseGameActivity {
 		ResourceManager.setFontManager(getFontManager());
 		ResourceManager.setTextureManager(getTextureManager());
 		
+		
 	}
 	
 	public void initActivity(){
@@ -95,6 +99,13 @@ public class StartActivity extends BaseGameActivity {
 		levelDetailActivity = new LevelDetailActivity(WIDTH, HEIGHT, getVertexBufferObjectManager());
 		levelDetailActivity.loadResources();
 		SceneManager.registerActivity("levelDetailActivity", levelDetailActivity);
+		
+		
+		//GameActivity 초기화
+		gameActivity = new GameActivity(WIDTH, HEIGHT, getVertexBufferObjectManager());
+		gameActivity.loadResources();
+		enableAccelerationSensor((IAccelerationListener) gameActivity);
+		SceneManager.registerActivity("gameActivity", gameActivity);
 	}
 	
 	protected void addTimer(){
@@ -129,6 +140,7 @@ public class StartActivity extends BaseGameActivity {
 		mainMenuActivity.updateActivity();
 		levelSelectActivity.updateActivity();
 		levelDetailActivity.updateActivity();
+		gameActivity.updateActivity();
 
 	}
 	
@@ -140,7 +152,7 @@ public class StartActivity extends BaseGameActivity {
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		
-		final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+		final BoundCamera camera = new BoundCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED,
 				new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), camera);
 
@@ -194,12 +206,32 @@ public class StartActivity extends BaseGameActivity {
 					if(!SceneManager.isAnimating())		SceneManager.goBack();
 					return true;
 				}
+				else{
+					//종료
+					finish();
+				}
 				
-			}			
+			}
 		}
 
 		return super.onKeyDown(keyCode, event);		
 	}
+	
+	@Override
+	protected void onPause() {
+		if(SceneManager.getPresentActivity() != null)
+			SceneManager.getPresentActivity().onPause();
+		super.onPause();
+	}
+		
+	@Override
+	protected synchronized void onResume() {
+		if(SceneManager.getPresentActivity() != null)
+			SceneManager.getPresentActivity().onResume();
+		super.onResume();
+	}
+	
+	
 
 
 

@@ -1,16 +1,29 @@
 package AllA.apps;
 
-import org.andengine.entity.primitive.Rectangle;
-import org.andengine.entity.sprite.Sprite;
-import org.andengine.entity.text.Text;
-import org.andengine.input.touch.TouchEvent;
-import org.andengine.input.touch.detector.ScrollDetector;
-import org.andengine.input.touch.detector.SurfaceScrollDetector;
-import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.color.Color;
+import org.andengine.engine.Engine;
+import org.andengine.engine.handler.timer.ITimerCallback;
+import org.andengine.engine.handler.timer.TimerHandler;
+import org.andengine.entity.Entity;
+import org.andengine.entity.IEntity;
+import org.andengine.entity.primitive.Rectangle;
+import org.andengine.entity.scene.ITouchArea;
+import org.andengine.entity.scene.Scene;
+import org.andengine.entity.scene.background.IBackground;
+import org.andengine.entity.sprite.Sprite;
+import org.andengine.entity.text.Text;
+import org.andengine.entity.*;
+import org.andengine.input.touch.TouchEvent;
+import org.andengine.input.touch.detector.ClickDetector;
+import org.andengine.input.touch.detector.ClickDetector.IClickDetectorListener;
+import org.andengine.input.touch.detector.ScrollDetector;
+import org.andengine.input.touch.detector.ScrollDetector.IScrollDetectorListener;
+import org.andengine.input.touch.detector.SurfaceScrollDetector;
 
 import android.graphics.Typeface;
+import android.util.Log;
+
 
 public class LevelSelectActivity extends SimpleBaseActivity{
 	
@@ -31,8 +44,12 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	private ScrollLayer levelScrollLayer2;
 	SurfaceScrollDetector mScrollDetector;
 	SurfaceScrollDetector mScrollDetector2;
-
+	
+	ClickDetector mClickDetector;
+	private int selectedLevel;
+	
 	private int presentFocus = FOCUS_NONE;
+	
 	
 	/* Constructor */
 	LevelSelectActivity(int width, int height,VertexBufferObjectManager pVertexBufferObjectManager) {
@@ -44,7 +61,7 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	@Override
 	public void loadResources()
 	{	
-		ResourceManager.loadImage("back3", "back3.png", 1280, 720);
+		ResourceManager.loadImage("back3", "back3.jpg", 1280, 720);
 		ResourceManager.loadFont("font1", 256, 256, Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD), 32);
 		for(int i=1;i<=MAX_LEVEL;i++)
 			ResourceManager.loadImage("level"+i, "level"+i+"/main_level.png", 400, 400);
@@ -55,8 +72,8 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	@Override
 	public void loadScene()
 	{
-//		if(isLoaded())
-//			return;
+		if(isLoaded())
+			return;
 		
 		// background
 		levelSelectBackSprite = new Sprite(0, 0, ResourceManager.getRegion("back3"), vertexBufferObjectManager) {
@@ -110,42 +127,38 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			final int level = i;
 			levelMainSprite[i] = new Sprite(0, 0, ResourceManager.getRegion("level"+i), vertexBufferObjectManager) {
 				boolean isFocused = false;
+				boolean chkMove = false;   /// ACTION_MOVE 가 발생하고 난 뒤에는 클릭이 발생하지 않도록 핸들하는 변수
 				@Override
 				public boolean onAreaTouched(
 						TouchEvent pSceneTouchEvent,
 						float pTouchAreaLocalX, float pTouchAreaLocalY) {
 					
 					if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
+					{
 						isFocused = true;
+						chkMove = false;
+					}
 					if(isFocused){
 						presentFocus = FOCUS_LEVEL_SELECT;
 						mScrollDetector.onTouchEvent(pSceneTouchEvent);
-					}
+					}					
 					if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_MOVE){
 						if(!isFocused){
 							mScrollDetector2.onTouchEvent(pSceneTouchEvent);
 						}
+						chkMove = true;
+					}
+					if(isFocused)   //누르고 움직이지 않았을 경우만 클릭으로 인정
+					{
+						selectedLevel=level;
+						mClickDetector.onManagedTouchEvent(pSceneTouchEvent);
 					}
 					if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP){
 						isFocused = false;
 						presentFocus = FOCUS_NONE;
-
-						// LevelDetailActivity로 이동
-						{
-							SimpleBaseActivity nextActivity = SceneManager.getActivity("levelDetailActivity");
-							
-							int back_out_Effect = SceneManager.EFFECT_MOVE_UP;
-							int back_in_Effect  = SceneManager.EFFECT_MOVE_UP;
-							nextActivity.setBackActivity(thisActivity,back_out_Effect, back_in_Effect);
-							((LevelDetailActivity)nextActivity).setLevel(level); //  누른 레벨을 전달
-
-							int out_Effect = SceneManager.EFFECT_MOVE_DOWN;
-							int in_Effect  = SceneManager.EFFECT_MOVE_DOWN;
-
-							SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
-
-						}
+			
 					}
+					
 					return true;
 				}
 				
@@ -238,7 +251,37 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			}
 		});
 
+		/***   ClickDetector 부분   **/
+		
+		mClickDetector = new ClickDetector(new IClickDetectorListener(){
+				
+			
+			@Override
+			public void onClick(ClickDetector pClickDetector, int pPointerID,
+					float pSceneX, float pSceneY) {
+				// TODO Auto-generated method stub
 
+				SimpleBaseActivity nextActivity = SceneManager.getActivity("levelDetailActivity");
+				
+				int back_out_Effect = SceneManager.EFFECT_MOVE_UP;
+				int back_in_Effect  = SceneManager.EFFECT_MOVE_UP;
+				nextActivity.setBackActivity(thisActivity,back_out_Effect, back_in_Effect);
+				((LevelDetailActivity)nextActivity).setLevel(selectedLevel); //  누른 레벨을 전달
+
+				int out_Effect = SceneManager.EFFECT_MOVE_DOWN;
+				int in_Effect  = SceneManager.EFFECT_MOVE_DOWN;
+				
+				SceneManager.setActivity(nextActivity, out_Effect, in_Effect);
+			}
+
+
+		
+		});
+		
+//		mClickDetector.setTriggerClickMaximumMilliseconds(100);   // 너무 빨리 클릭될까봐 누르고 일정 시간 딜레이 후 클릭 되게
+		
+		
+		
 		super.loadScene();
 	}
 	

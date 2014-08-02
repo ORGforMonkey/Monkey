@@ -25,7 +25,7 @@ public class MainLogoActivity extends SimpleBaseActivity{
 	@Override
 	public void loadResources()
 	{	
-		ResourceManager.loadImage("mainLogo", "mainLogo.png", 1280, 720);
+		ResourceManager.loadImage("mainLogo", "mainLogo.jpg", 1280, 720);
 		ResourceManager.loadFont("font1", 256, 256, Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD), 32);
 
 		super.loadResources();
