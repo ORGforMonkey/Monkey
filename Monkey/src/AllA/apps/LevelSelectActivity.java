@@ -258,6 +258,7 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			}
 		});
 
+		
 		/***   ClickDetector ºÎºÐ   **/
 		
 		mClickDetector = new ClickDetector(new IClickDetectorListener(){

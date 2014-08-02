@@ -230,7 +230,7 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 	{
 		if(currentlevel+curdirection<1 || currentlevel+curdirection>MAX_LEVEL) return;
 
-		Velocity=38.0f * curdirection;
+		Velocity=38.00f * curdirection;
 		direction = curdirection;
 	}
 	
