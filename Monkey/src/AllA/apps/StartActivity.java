@@ -50,6 +50,7 @@ public class StartActivity extends BaseGameActivity {
 
 	private TimerHandler onGameTimer;
 	
+	
 	// ===========================================================
 	// Methods
 	// ===========================================================
@@ -107,6 +108,7 @@ public class StartActivity extends BaseGameActivity {
 		});
 		
 
+
 		mEngine.registerUpdateHandler(new FPSLogger());
 		mEngine.registerUpdateHandler(new TimerHandler(0.01f, new ITimerCallback() {
 					public void onTimePassed(final TimerHandler pTimerHandler) {
@@ -117,9 +119,12 @@ public class StartActivity extends BaseGameActivity {
 						SceneManager.setActivity(mainLogoActivity);
 
 						mEngine.registerUpdateHandler(onGameTimer);
+						
 						mEngine.unregisterUpdateHandler(pTimerHandler);
 					}
 				}));
+		
+		
 
 	}
 	

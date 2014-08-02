@@ -273,7 +273,6 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 				int back_in_Effect  = SceneManager.EFFECT_MOVE_UP;
 				nextActivity.setBackActivity(thisActivity,back_out_Effect, back_in_Effect);
 				((LevelDetailActivity)nextActivity).setLevel(selectedLevel); //  누른 레벨을 전달
-
 				int out_Effect = SceneManager.EFFECT_MOVE_DOWN;
 				int in_Effect  = SceneManager.EFFECT_MOVE_DOWN;
 				

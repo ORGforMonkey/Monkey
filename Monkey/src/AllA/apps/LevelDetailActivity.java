@@ -6,6 +6,7 @@ import org.andengine.input.touch.TouchEvent;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 import android.graphics.Typeface;
+import android.util.Log;
 
 public class LevelDetailActivity extends SimpleBaseActivity{
 	
@@ -16,7 +17,18 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 	private Sprite backgroundSprite;
 	private Sprite levelDetailSprite[] = new Sprite[100];
 	
-	private int level = 1;
+	/** 레벨 옮기는 버튼 **/
+	private Sprite levelLeftButton;
+	private Sprite levelRightButton;
+	
+	/** 레벨 옮기는 애니메이션 관련 변수 **/
+	private int direction;
+	private float Distance = Width*0.8f;
+	private float movedDistance = 0f;
+	private float Velocity;
+	
+	
+	private int level = -1;
 	Text Title;
 
 	/* Constructor */
@@ -32,7 +44,12 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 		ResourceManager.loadImage("back3", "back3.png", 1280, 720);
 		for(int i=1;i<=MAX_LEVEL;i++)	ResourceManager.loadImage("leveldetailbutton"+i, "level"+i+"/leveldetailbutton.png", 200, 200);
 		ResourceManager.loadFont("font2", 256, 256, Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD), 100);
-
+		
+		/** 버튼 부분 **/
+		ResourceManager.loadImage("levelleftbutton", "levelleft.png", 100, 200);
+		ResourceManager.loadImage("levelrightbutton", "levelright.png", 100, 200);
+		/** 버튼 부분 **/
+		
 		super.loadResources();
 	}
 	
@@ -53,6 +70,7 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 		mainLayer.attachChild(Title);
 		
 		
+		
 		for(int i=1;i<=MAX_LEVEL;i++){
 			levelLayer[i] = new Layer();
 			for(int j=0;j<13;j++){
@@ -60,7 +78,7 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 					@Override
 					public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
 							float pTouchAreaLocalX, float pTouchAreaLocalY) {
-						// TODO ���������ϴ� ��ġ�κ�
+						// TODO ���������ϴ� ��ġ�κ�
 						return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
 					}
 				};
@@ -77,13 +95,43 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 				levelText.setPosition(TX, TY);
 				levelLayer[i].attachChild(levelText);
 			}
-
-
-			resetPosition(i);
-			
 			
 			mainLayer.attachChild(levelLayer[i]);
+			
+			resetPosition(i);
 		}
+		
+		/** 레벨 선택 버튼 **/
+		
+		levelLeftButton = new Sprite(0,0,ResourceManager.getRegion("levelleftbutton"),vertexBufferObjectManager){
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP){
+					if(Velocity==0f)
+						animateLevelChange(level,-1);
+				}
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+			};
+			
+			
+		};
+		levelLeftButton.setPosition(Width*0.06f, (Height-levelLeftButton.getHeight())/2+10);
+		mainLayer.attachChild(levelLeftButton);
+		
+		levelRightButton = new Sprite(0,0,ResourceManager.getRegion("levelrightbutton"),vertexBufferObjectManager){
+			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+					float pTouchAreaLocalX, float pTouchAreaLocalY) {
+				if (pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP){
+					if(Velocity==0f)
+						animateLevelChange(level,1);
+				}
+				return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+			}
+			
+			
+		};
+		levelRightButton.setPosition((Width-levelRightButton.getWidth())*0.94f, (Height-levelRightButton.getHeight())/2+10);
+		mainLayer.attachChild(levelRightButton);
 
 		super.loadScene();
 	}
@@ -102,6 +150,9 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 	@Override
 	public void registerTouchAreatoSceneManager(){
 		
+		SceneManager.registerTouchArea(levelLeftButton);
+		SceneManager.registerTouchArea(levelRightButton);
+		
 		super.registerTouchAreatoSceneManager();
 	}
 	
@@ -112,11 +163,11 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 		if(Title != null)
 			Title.setText("level"+level);
 		
-		for(int i=1;i<=MAX_LEVEL;i++){
-			if(levelLayer[i] == null)	break;
-
-			resetPosition(i);
-		}
+		if(levelLeftButton!=null)
+			resetButtonVisible();
+		
+		if(levelLeftButton!=null)
+			animEffect();
 
 	}
 	
@@ -128,26 +179,92 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 	
 	public void setLevel(int pLevel){
 		level = pLevel;
+		if(levelLeftButton!=null)
+		{
+			for(int i=1;i<=MAX_LEVEL;i++)
+				resetPosition(i);
+		}
 	}
 	
-	private void resetPosition(int i){
-		if(i==level)	levelLayer[i].setScale(0.7f);
+	public void resetPosition(int i){
+		if(i==level){
+			levelLayer[i].setScale(0.7f);
+			SceneManager.setAlphaAll(1.0f, levelLayer[i]);
+		}
 		else{
-						levelLayer[i].setScale(0.6f);
-						SceneManager.setAlphaAll(0.8f, levelLayer[i]);
+						levelLayer[i].setScale(0.7f);
+						SceneManager.setAlphaAll(0.5f, levelLayer[i]);
 		}
 		
 		levelLayer[i].setVisible(true);
 
 		if(i==level+1)
-			levelLayer[i].setPosition(Width*(1-0.7f)/2+(Width*0.7f+150), 200);
+			levelLayer[i].setPosition(Width*(1-0.7f)/2+(Width*0.8f), 150);
 		else if(i==level)
 			levelLayer[i].setPosition(Width*(1-0.7f)/2, 150);
 		else if(i==level-1)
-			levelLayer[i].setPosition(Width*(1-0.7f)/2-(Width*0.6f+150), 200);
+			levelLayer[i].setPosition(Width*(1-0.7f)/2-(Width*0.8f), 150);
 		else
 			levelLayer[i].setVisible(false);
+		
+//		levelLayer[i].setPosition(Width*(1-0.7f)/2 + (Width*0.8f)*(level-i),150);
 
+	}
+	
+	private void resetButtonVisible()
+	{
+		/** 끝 레벨일 경우 보이지 않음 **/
+		if(level==1){
+			levelLeftButton.setVisible(false);
+			levelRightButton.setVisible(true);
+		}else if(level==MAX_LEVEL){
+			levelLeftButton.setVisible(true);
+			levelRightButton.setVisible(false);
+		}else{
+			levelLeftButton.setVisible(true);
+			levelRightButton.setVisible(true);
+		}
+	}
+	
+	private void animateLevelChange(int currentlevel,int curdirection)    //direction -1 : left, +1 : right
+	{
+		if(currentlevel+curdirection<1 || currentlevel+curdirection>MAX_LEVEL) return;
+
+		Velocity=38.0f * curdirection;
+		direction = curdirection;
+	}
+	
+	public void animEffect()
+	{
+		int goinglevel = level + direction;
+		if(Velocity==0f) return;
+		else if(Velocity<0) 	direction = -1;
+		else direction = 1;
+
+		movedDistance += Velocity;
+		if(movedDistance * direction >= Distance){
+			Velocity=0f;
+			movedDistance=0;
+
+			level = level + direction;
+			
+			for(int i=1;i<=MAX_LEVEL;i++)
+			{
+				resetPosition(i);
+			}
+		}
+		
+		for(int i=level-2;i<=level+2;i++)
+		{
+			if(i>=1 && i<=MAX_LEVEL)
+			{
+				levelLayer[i].setX(levelLayer[i].getX()-Velocity);
+				if(i==goinglevel && level == goinglevel - direction)
+					SceneManager.setAlphaAll(1.0f-0.5f*(Distance - movedDistance * direction)/Distance, levelLayer[i]);
+				else if(level == goinglevel - direction)
+					SceneManager.setAlphaAll(0.5f+0.5f*(Distance - movedDistance * direction)/Distance, levelLayer[i]);
+			}
+		}
 	}
 
 }
