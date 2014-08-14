@@ -33,8 +33,11 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	private static final int FOCUS_LEVEL_SCENE_MOVE = 2;
 
 	private int MAX_LEVEL = StartActivity.MAX_LEVEL;
+<<<<<<< HEAD
 	
 	public static final float CLICK_DISTANCE = (float) 100.0;  /// 거리 최적화 필요
+=======
+>>>>>>> master
 
 	
 	/* variable */
@@ -63,7 +66,11 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	@Override
 	public void loadResources()
 	{	
+<<<<<<< HEAD
 		ResourceManager.loadImage("back3", "back3.png", 1280, 720);
+=======
+		ResourceManager.loadImage("back3", "back3.jpg", 1280, 720);
+>>>>>>> master
 		ResourceManager.loadFont("font1", 256, 256, Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD), 32);
 		for(int i=1;i<=MAX_LEVEL;i++)
 			ResourceManager.loadImage("level"+i, "level"+i+"/main_level.png", 400, 400);
@@ -74,8 +81,13 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 	@Override
 	public void loadScene()
 	{
+<<<<<<< HEAD
 //		if(isLoaded())
 //			return;
+=======
+		if(isLoaded())
+			return;
+>>>>>>> master
 		
 		// background
 		levelSelectBackSprite = new Sprite(0, 0, ResourceManager.getRegion("back3"), vertexBufferObjectManager) {
@@ -129,8 +141,12 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			final int level = i;
 			levelMainSprite[i] = new Sprite(0, 0, ResourceManager.getRegion("level"+i), vertexBufferObjectManager) {
 				boolean isFocused = false;
+<<<<<<< HEAD
 //				boolean chkMove = false;   /// ACTION_MOVE 가 발생하고 난 뒤에는 클릭이 발생하지 않도록 핸들하는 변수
 				float startPosX,startPosY;
+=======
+				boolean chkMove = false;   /// ACTION_MOVE 가 발생하고 난 뒤에는 클릭이 발생하지 않도록 핸들하는 변수
+>>>>>>> master
 				@Override
 				public boolean onAreaTouched(
 						TouchEvent pSceneTouchEvent,
@@ -139,23 +155,37 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 					if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN)
 					{
 						isFocused = true;
+<<<<<<< HEAD
 //						chkMove = false;
 						startPosX = pSceneTouchEvent.getX();
 						startPosY = pSceneTouchEvent.getY();
+=======
+						chkMove = false;
+>>>>>>> master
 					}
 					if(isFocused){
 						presentFocus = FOCUS_LEVEL_SELECT;
 						mScrollDetector.onTouchEvent(pSceneTouchEvent);
+<<<<<<< HEAD
 					}
 					
+=======
+					}					
+>>>>>>> master
 					if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_MOVE){
 						if(!isFocused){
 							mScrollDetector2.onTouchEvent(pSceneTouchEvent);
 						}
+<<<<<<< HEAD
 //						chkMove = true;
 					}
 //					if(isFocused && !chkMove)   //누르고 움직이지 않았을 경우만 클릭으로 인정
 					if(isFocused && (pSceneTouchEvent.getX()-startPosX)*(pSceneTouchEvent.getX()-startPosX)+(pSceneTouchEvent.getY()-startPosY)*(pSceneTouchEvent.getY()-startPosY) < CLICK_DISTANCE)
+=======
+						chkMove = true;
+					}
+					if(isFocused)   //누르고 움직이지 않았을 경우만 클릭으로 인정
+>>>>>>> master
 					{
 						selectedLevel=level;
 						mClickDetector.onManagedTouchEvent(pSceneTouchEvent);
@@ -258,7 +288,10 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			}
 		});
 
+<<<<<<< HEAD
 		
+=======
+>>>>>>> master
 		/***   ClickDetector 부분   **/
 		
 		mClickDetector = new ClickDetector(new IClickDetectorListener(){
@@ -268,12 +301,20 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 			public void onClick(ClickDetector pClickDetector, int pPointerID,
 					float pSceneX, float pSceneY) {
 				// TODO Auto-generated method stub
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
 				SimpleBaseActivity nextActivity = SceneManager.getActivity("levelDetailActivity");
 				
 				int back_out_Effect = SceneManager.EFFECT_MOVE_UP;
 				int back_in_Effect  = SceneManager.EFFECT_MOVE_UP;
 				nextActivity.setBackActivity(thisActivity,back_out_Effect, back_in_Effect);
 				((LevelDetailActivity)nextActivity).setLevel(selectedLevel); //  누른 레벨을 전달
+<<<<<<< HEAD
+=======
+
+>>>>>>> master
 				int out_Effect = SceneManager.EFFECT_MOVE_DOWN;
 				int in_Effect  = SceneManager.EFFECT_MOVE_DOWN;
 				
@@ -284,7 +325,11 @@ public class LevelSelectActivity extends SimpleBaseActivity{
 		
 		});
 		
+<<<<<<< HEAD
 		mClickDetector.setTriggerClickMaximumMilliseconds(800);   // 너무 빨리 클릭될까봐 누르고 일정 시간 딜레이 후 클릭 되게
+=======
+//		mClickDetector.setTriggerClickMaximumMilliseconds(100);   // 너무 빨리 클릭될까봐 누르고 일정 시간 딜레이 후 클릭 되게
+>>>>>>> master
 		
 		
 		

@@ -17,7 +17,11 @@ public class SplashActivity extends SimpleBaseActivity{
 	
 	@Override
 	public void loadResources() {
+<<<<<<< HEAD
 		ResourceManager.loadImage("loading", "loading.png", 1280, 720);
+=======
+		ResourceManager.loadImage("loading", "loading.jpg", 1280, 720);
+>>>>>>> master
 		
 		super.loadResources();
 	}
