@@ -10,7 +10,10 @@ import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.scene.background.Background;
 import org.andengine.entity.util.FPSLogger;
+<<<<<<< HEAD
+=======
 import org.andengine.input.sensor.acceleration.IAccelerationListener;
+>>>>>>> master
 import org.andengine.ui.activity.BaseGameActivity;
 
 import android.view.KeyEvent;
@@ -49,10 +52,17 @@ public class StartActivity extends BaseGameActivity {
 	private SimpleBaseActivity mainMenuActivity;
 	private SimpleBaseActivity levelSelectActivity;
 	private SimpleBaseActivity levelDetailActivity;
+<<<<<<< HEAD
+
+	private TimerHandler onGameTimer;
+	
+	
+=======
 	private SimpleBaseActivity gameActivity;
 
 	private TimerHandler onGameTimer;
 	
+>>>>>>> master
 	// ===========================================================
 	// Methods
 	// ===========================================================
@@ -75,7 +85,10 @@ public class StartActivity extends BaseGameActivity {
 		ResourceManager.setFontManager(getFontManager());
 		ResourceManager.setTextureManager(getTextureManager());
 		
+<<<<<<< HEAD
+=======
 		
+>>>>>>> master
 	}
 	
 	public void initActivity(){
@@ -99,6 +112,8 @@ public class StartActivity extends BaseGameActivity {
 		levelDetailActivity = new LevelDetailActivity(WIDTH, HEIGHT, getVertexBufferObjectManager());
 		levelDetailActivity.loadResources();
 		SceneManager.registerActivity("levelDetailActivity", levelDetailActivity);
+<<<<<<< HEAD
+=======
 		
 		
 		//GameActivity ÃÊ±âÈ­
@@ -106,6 +121,7 @@ public class StartActivity extends BaseGameActivity {
 		gameActivity.loadResources();
 		enableAccelerationSensor((IAccelerationListener) gameActivity);
 		SceneManager.registerActivity("gameActivity", gameActivity);
+>>>>>>> master
 	}
 	
 	protected void addTimer(){
@@ -118,6 +134,10 @@ public class StartActivity extends BaseGameActivity {
 		});
 		
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> master
 		mEngine.registerUpdateHandler(new FPSLogger());
 		mEngine.registerUpdateHandler(new TimerHandler(0.01f, new ITimerCallback() {
 					public void onTimePassed(final TimerHandler pTimerHandler) {
@@ -128,9 +148,18 @@ public class StartActivity extends BaseGameActivity {
 						SceneManager.setActivity(mainLogoActivity);
 
 						mEngine.registerUpdateHandler(onGameTimer);
+<<<<<<< HEAD
+						
 						mEngine.unregisterUpdateHandler(pTimerHandler);
 					}
 				}));
+		
+		
+=======
+						mEngine.unregisterUpdateHandler(pTimerHandler);
+					}
+				}));
+>>>>>>> master
 
 	}
 	
@@ -140,7 +169,10 @@ public class StartActivity extends BaseGameActivity {
 		mainMenuActivity.updateActivity();
 		levelSelectActivity.updateActivity();
 		levelDetailActivity.updateActivity();
+<<<<<<< HEAD
+=======
 		gameActivity.updateActivity();
+>>>>>>> master
 
 	}
 	
@@ -152,7 +184,11 @@ public class StartActivity extends BaseGameActivity {
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		
+<<<<<<< HEAD
+		final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+=======
 		final BoundCamera camera = new BoundCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+>>>>>>> master
 		return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED,
 				new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), camera);
 
@@ -201,6 +237,18 @@ public class StartActivity extends BaseGameActivity {
 		if(keyCode == KeyEvent.KEYCODE_BACK){
 						
 			if( SceneManager.presentActivity != null){
+<<<<<<< HEAD
+				
+				if(SceneManager.presentActivity.getBackActivity() != null){
+					if(!SceneManager.isAnimating())		SceneManager.goBack();
+					return true;
+				}
+				
+			}			
+		}
+
+		return super.onKeyDown(keyCode, event);		
+=======
 				
 				if(SceneManager.presentActivity.getBackActivity() != null){
 					if(!SceneManager.isAnimating())		SceneManager.goBack();
@@ -229,10 +277,15 @@ public class StartActivity extends BaseGameActivity {
 		if(SceneManager.getPresentActivity() != null)
 			SceneManager.getPresentActivity().onResume();
 		super.onResume();
+>>>>>>> master
 	}
 	
 	
 
 
+<<<<<<< HEAD
+
+=======
+>>>>>>> master
 
 }
