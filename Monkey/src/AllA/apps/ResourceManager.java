@@ -53,20 +53,12 @@ public class ResourceManager {
 		if(AtlasResources.containsKey(keys))
 			return;
 		
-<<<<<<< HEAD
-		newTextureAtlas = new BitmapTextureAtlas(mTextureManager, pWidth, pHeight, TextureOptions.DEFAULT);
-=======
 		newTextureAtlas = new BitmapTextureAtlas(mTextureManager, pWidth, pHeight, TextureOptions.BILINEAR);
->>>>>>> master
 
 		newTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(newTextureAtlas, mContext, pAssetPath, 0, 0);
 
 		newTextureAtlas.load();
-<<<<<<< HEAD
-		
-=======
 				
->>>>>>> master
 		AtlasResources.put(keys, newTextureAtlas);
 		RegionResources.put(keys, newTextureRegion);
 	}

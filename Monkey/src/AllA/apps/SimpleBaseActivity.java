@@ -122,8 +122,6 @@ public class SimpleBaseActivity{
 	public boolean isLoaded(){
 		return isLoaded;
 	}
-<<<<<<< HEAD
-=======
 	
 	public boolean isFocused(){
 		if(this.equals(SceneManager.presentActivity))
@@ -139,7 +137,6 @@ public class SimpleBaseActivity{
 	}
 	
 	
->>>>>>> master
 	/* animations */
 	
 }

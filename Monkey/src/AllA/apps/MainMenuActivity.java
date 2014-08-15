@@ -22,11 +22,7 @@ public class MainMenuActivity extends SimpleBaseActivity{
 	@Override
 	public void loadResources()
 	{
-<<<<<<< HEAD
-		ResourceManager.loadImage("back2", "back2.png", 1280, 720);
-=======
 		ResourceManager.loadImage("back2", "back2.jpg", 1280, 720);
->>>>>>> master
 		ResourceManager.loadImage("levelButton", "menu_selectlevel.png", 400, 200);
 
 		super.loadResources();
@@ -35,13 +31,8 @@ public class MainMenuActivity extends SimpleBaseActivity{
 	@Override
 	public void loadScene()
 	{
-<<<<<<< HEAD
-//		if(isLoaded())
-//			return;
-=======
 		if(isLoaded())
 			return;
->>>>>>> master
 		
 		// background
 		
@@ -76,18 +67,11 @@ public class MainMenuActivity extends SimpleBaseActivity{
 
 		};
 		
-<<<<<<< HEAD
-		float lSBS_X = (Width-levelSelectButtonSprite.getWidth())/2;
-		float lSBS_Y = (Height-levelSelectButtonSprite.getHeight())/2;
-		levelSelectButtonSprite.setPosition(lSBS_X, lSBS_Y);
-		mainLayer.attachChild(levelSelectButtonSprite);		
-=======
 		
 		float lSBS_X = (Width-levelSelectButtonSprite.getWidth())/2;
 		float lSBS_Y = (Height-levelSelectButtonSprite.getHeight())/2;
 		levelSelectButtonSprite.setPosition(lSBS_X, lSBS_Y);
 		mainLayer.attachChild(levelSelectButtonSprite);
->>>>>>> master
 
 		
 		super.loadScene();
@@ -95,13 +79,7 @@ public class MainMenuActivity extends SimpleBaseActivity{
 	
 	@Override
 	public void deleteSprites() {
-<<<<<<< HEAD
-/*		MainMenuBackSprite.dispose();
-		levelSelectButtonSprite.dispose();
-*/		super.deleteSprites();
-=======
 		super.deleteSprites();
->>>>>>> master
 	}
 	
 	@Override
