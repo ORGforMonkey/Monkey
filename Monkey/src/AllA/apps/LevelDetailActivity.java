@@ -27,7 +27,7 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 	private int direction;
 	private float Distance = Width*0.8f;
 	private float movedDistance = 0f;
-	private float Velocity;
+	private float Velocity = 0f;
 
 
 	private int level = -1;
@@ -61,7 +61,8 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 	{
 		if(isLoaded())
 			return;
-
+		
+		
 		// background
 		backgroundSprite = new Sprite(0, 0, ResourceManager.getRegion("back3"), vertexBufferObjectManager);
 		mainLayer.attachChild(backgroundSprite);
@@ -192,7 +193,12 @@ public class LevelDetailActivity extends SimpleBaseActivity{
 			if(levelLeftButton!=null)
 				animEffect();
 		}
-
+		
+		if(SceneManager.isPresentActivity("levelDetailActivity")==false)
+		{
+			Velocity=0f;
+			movedDistance=0;
+		}
 	}
 
 
