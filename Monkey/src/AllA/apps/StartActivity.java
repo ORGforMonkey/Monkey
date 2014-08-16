@@ -1,7 +1,6 @@
 package AllA.apps;
 
-import org.andengine.engine.camera.BoundCamera;
-import org.andengine.engine.camera.Camera;
+import org.andengine.engine.camera.ZoomCamera;
 import org.andengine.engine.handler.timer.ITimerCallback;
 import org.andengine.engine.handler.timer.TimerHandler;
 import org.andengine.engine.options.EngineOptions;
@@ -79,7 +78,7 @@ public class StartActivity extends BaseGameActivity {
 	}
 	
 	public void initActivity(){
-
+		
 		//mainLogoActivity √ ±‚»≠
 		mainLogoActivity = new MainLogoActivity(WIDTH, HEIGHT, getVertexBufferObjectManager());
 		mainLogoActivity.loadResources();
@@ -152,7 +151,7 @@ public class StartActivity extends BaseGameActivity {
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		
-		final BoundCamera camera = new BoundCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+		final ZoomCamera camera = new ZoomCamera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED,
 				new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), camera);
 

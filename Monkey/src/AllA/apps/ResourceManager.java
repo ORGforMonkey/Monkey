@@ -46,12 +46,12 @@ public class ResourceManager {
 	
 	
 	
-	static public void loadImage(String keys, String pAssetPath, int pWidth, int pHeight){
+	static public ITextureRegion loadImage(String keys, String pAssetPath, int pWidth, int pHeight){
 		BitmapTextureAtlas newTextureAtlas;
 		ITextureRegion newTextureRegion;
 		
 		if(AtlasResources.containsKey(keys))
-			return;
+			return null;
 		
 		newTextureAtlas = new BitmapTextureAtlas(mTextureManager, pWidth, pHeight, TextureOptions.BILINEAR);
 
@@ -61,6 +61,8 @@ public class ResourceManager {
 				
 		AtlasResources.put(keys, newTextureAtlas);
 		RegionResources.put(keys, newTextureRegion);
+		
+		return newTextureRegion;
 	}
 	
 	static public void loadFont(String keys, int pTextureWidth, int pTextureHeight, Typeface pTypeface, float pSize){
@@ -96,6 +98,10 @@ public class ResourceManager {
 			return null;
 		
 		return FontResources.get(keys);
+	}
+	
+	static public Context getContext(){
+		return mContext;
 	}
 
 }

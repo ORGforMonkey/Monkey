@@ -1,9 +1,10 @@
 package AllA.apps;
 
-import org.andengine.engine.camera.BoundCamera;
+import org.andengine.engine.camera.ZoomCamera;
 import org.andengine.engine.camera.hud.HUD;
 import org.andengine.entity.primitive.Line;
 import org.andengine.entity.primitive.Rectangle;
+import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
@@ -13,6 +14,8 @@ import org.andengine.extension.physics.box2d.util.Vector2Pool;
 import org.andengine.input.sensor.acceleration.AccelerationData;
 import org.andengine.input.sensor.acceleration.IAccelerationListener;
 import org.andengine.input.touch.TouchEvent;
+import org.andengine.input.touch.detector.PinchZoomDetector;
+import org.andengine.input.touch.detector.PinchZoomDetector.IPinchZoomDetectorListener;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.color.Color;
 
@@ -25,17 +28,15 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.Joint;
 import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 
-public class GameActivity extends SimpleBaseActivity implements IAccelerationListener{
+public class GameActivity extends SimpleBaseActivity implements IAccelerationListener, IPinchZoomDetectorListener, IOnSceneTouchListener{
 	
 	/* variable */
 	private PhysicsWorld mPhysicsWorld;
 	private Sprite BackSprite;
-	private Sprite leftTouchSprite;
-	private Sprite rightTouchSprite;
 	Line line1;
-	Rectangle obj1;
-	Rectangle obj2;
-	Rectangle obj3;
+	Sprite obj1;
+	Sprite obj2;
+	Sprite obj3;
 	Rectangle ground;
 	Rectangle left;
 	Rectangle right;
@@ -45,8 +46,11 @@ public class GameActivity extends SimpleBaseActivity implements IAccelerationLis
 	Body g_wall;
 	Body l_wall;
 	Body r_wall;
-	
-	BoundCamera mCamera;
+    PhysicsEditorShapeLibrary physicsEditorShapeLibrary;
+    private PinchZoomDetector mPinchZoomDetector;
+    private float mPinchZoomStartedCameraZoomFactor;
+    
+    ZoomCamera mCamera;
 	HUD mHUD;
 	
 	int g_Width;
@@ -61,24 +65,28 @@ public class GameActivity extends SimpleBaseActivity implements IAccelerationLis
 		g_Height = 3000;
 		
 		mPhysicsWorld = new PhysicsWorld(new Vector2(0, SensorManager.GRAVITY_EARTH), false);
+		physicsEditorShapeLibrary = new PhysicsEditorShapeLibrary();
+		
+		mPinchZoomDetector = new PinchZoomDetector(this);
 
 	}
 	
 	@Override
 	public void onResume() {
-		mCamera = (BoundCamera) SceneManager.mEngine.getCamera();
+		mCamera = (ZoomCamera) SceneManager.mEngine.getCamera();
 		mCamera.setBoundsEnabled(true);
 		mCamera.setBounds(0, 0, g_Width, g_Height);
-		if(mCamera.hasHUD())	mCamera.getHUD().setVisible(true);
+		if(mHUD!=null)	mHUD.setOnSceneTouchListener(this);
 		if(obj1!=null)	mCamera.setChaseEntity(obj1);
 		super.onResume();
 	}
 	
 	@Override
 	public void onPause() {
-		mCamera.getHUD().setVisible(false);
+		mHUD.setOnSceneTouchListener(null);
 		mCamera.setChaseEntity(null);
 		mCamera.set(0, 0, Width, Height);
+		mCamera.setZoomFactor(1);
 		super.onPause();
 	}
 	
@@ -87,7 +95,7 @@ public class GameActivity extends SimpleBaseActivity implements IAccelerationLis
 	@Override
 	public void loadResources() {
 		ResourceManager.loadImage("onGameBack", "onGameBack.jpg", 1280, 3000);
-		ResourceManager.loadImage("touchArea", "touchArea.png", 640, 760);
+		ResourceManager.loadImage("obj1", "obj1.png", 100, 100);
 
 		super.loadResources();
 	}
@@ -121,27 +129,34 @@ public class GameActivity extends SimpleBaseActivity implements IAccelerationLis
 		
 		
 		// objects
-		obj1 = new Rectangle(g_Width/2-50,100, 100, 100, vertexBufferObjectManager);
-		obj2 = new Rectangle(g_Width/2-50,200, 100, 100, vertexBufferObjectManager);
-		obj3 = new Rectangle(g_Width/2-50,200, 100, 100, vertexBufferObjectManager);
-		obj1.setColor(new Color(0, 0, 0));
-		obj2.setColor(new Color(0, 1, 0));
-		obj3.setColor(new Color(0, 0, 1));
+		obj1 = new Sprite(g_Width/2-50,100,ResourceManager.getRegion("obj1"),vertexBufferObjectManager);
+		obj2 = new Sprite(g_Width/2-100,200,ResourceManager.getRegion("obj1"),vertexBufferObjectManager);
+		obj3 = new Sprite(g_Width/2+100,200,ResourceManager.getRegion("obj1"),vertexBufferObjectManager);
+//		obj1.setColor(new Color(0, 0, 0));
+//		obj2.setColor(new Color(0, 1, 0));
+//		obj3.setColor(new Color(0, 0, 1));
 		
 		FixtureDef FixtureDef = PhysicsFactory.createFixtureDef(0.01f, 0.2f, 0.0f);
-		body1 = PhysicsFactory.createBoxBody(mPhysicsWorld, obj1, BodyType.DynamicBody, FixtureDef);
-		body2 = PhysicsFactory.createBoxBody(mPhysicsWorld, obj2, BodyType.DynamicBody, FixtureDef);
-		body3 = PhysicsFactory.createBoxBody(mPhysicsWorld, obj3, BodyType.DynamicBody, FixtureDef);
+
+		physicsEditorShapeLibrary.open(ResourceManager.getContext(), "shape/obj1.xml");
+		body1 = physicsEditorShapeLibrary.createBody("obj1", obj1, this.mPhysicsWorld);
+		body2 = physicsEditorShapeLibrary.createBody("obj1", obj2, this.mPhysicsWorld);
+		body3 = physicsEditorShapeLibrary.createBody("obj1", obj3, this.mPhysicsWorld);
+
+//		body2 = PhysicsFactory.createBoxBody(mPhysicsWorld, obj2, BodyType.DynamicBody, FixtureDef);
+//		body3 = PhysicsFactory.createBoxBody(mPhysicsWorld, obj3, BodyType.DynamicBody, FixtureDef);
 //		body1.setLinearDamping(1);//공기 저항
+		
+		
 
 		mainLayer.attachChild(obj1);
 		mainLayer.attachChild(obj2);
 		mainLayer.attachChild(obj3);
 
 
-		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(obj1, body1, true, true));
-		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(obj2, body2, true, true));
-		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(obj3, body3, true, true));
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(obj1, body1, true, false));
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(obj2, body2, true, false));
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(obj3, body3, true, false));
 
 
 		{
@@ -171,7 +186,7 @@ public class GameActivity extends SimpleBaseActivity implements IAccelerationLis
 			
 			Joint chainLink2 = mPhysicsWorld.createJoint(chainLinkDef2);
 		}
-				
+		
 		
 		
 		mainLayer.registerUpdateHandler(mPhysicsWorld);
@@ -182,26 +197,8 @@ public class GameActivity extends SimpleBaseActivity implements IAccelerationLis
 		mHUD = new HUD();
 		mCamera.setHUD(mHUD);
 		
-		leftTouchSprite = new Sprite(0,0,ResourceManager.getRegion("touchArea"),vertexBufferObjectManager){
-			public boolean onAreaTouched(org.andengine.input.touch.TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP)
-					setAcceleration(0);
-				else
-					setAcceleration(-20.0f);
-				return true;
-			};
-			
-		};
-		rightTouchSprite = new Sprite(640,0,ResourceManager.getRegion("touchArea"),vertexBufferObjectManager){
-			public boolean onAreaTouched(org.andengine.input.touch.TouchEvent pSceneTouchEvent, float pTouchAreaLocalX, float pTouchAreaLocalY) {
-				if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_UP)
-					setAcceleration(0);
-				else
-					setAcceleration(20.0f);
-				return true;
-			};
-		};
-
+		mHUD.setOnSceneTouchListener(this);
+		
 
 		super.loadScene();
 	}
@@ -210,8 +207,6 @@ public class GameActivity extends SimpleBaseActivity implements IAccelerationLis
 	@Override
 	public void registerTouchAreatoSceneManager() {
 
-		mHUD.registerTouchArea(leftTouchSprite);
-		mHUD.registerTouchArea(rightTouchSprite);
 		super.registerTouchAreatoSceneManager();
 	}
 	
@@ -249,6 +244,64 @@ public class GameActivity extends SimpleBaseActivity implements IAccelerationLis
 			this.mPhysicsWorld.setGravity(gravity);
 			Vector2Pool.recycle(gravity);
 		}
+	}
+	
+	private void move(TouchEvent pSceneTouchEvent){
+		if(pSceneTouchEvent.getX()<Width/2){
+			setAcceleration(-5.0f);			
+		}else{
+			setAcceleration(5.0f);
+		}
+	}
+	
+	private void stop(){
+		setAcceleration(0);
+	}
+
+	@Override
+	public boolean onSceneTouchEvent(Scene pScene, TouchEvent pSceneTouchEvent) {
+
+		if (this.mPinchZoomDetector != null) {
+			this.mPinchZoomDetector.onTouchEvent(pSceneTouchEvent);
+
+			if (this.mPinchZoomDetector.isZooming()) {
+			} else {
+				if(pSceneTouchEvent.getMotionEvent().getPointerCount()==1){
+					if (pSceneTouchEvent.isActionDown()) {
+						move(pSceneTouchEvent);
+					}
+					if (pSceneTouchEvent.isActionUp()) {
+						stop();
+					}
+				}else{
+					stop();
+				}
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public void onPinchZoomStarted(PinchZoomDetector pPinchZoomDetector,
+			TouchEvent pSceneTouchEvent) {
+		mPinchZoomStartedCameraZoomFactor = mCamera.getZoomFactor();
+	}
+
+	@Override
+	public void onPinchZoom(PinchZoomDetector pPinchZoomDetector,
+			TouchEvent pTouchEvent, float pZoomFactor) {
+		if(mCamera.getZoomFactor()>=1){
+			if(mPinchZoomStartedCameraZoomFactor * pZoomFactor<1)
+				mCamera.setZoomFactor(1);
+			else
+				mCamera.setZoomFactor(mPinchZoomStartedCameraZoomFactor * pZoomFactor);
+		}
+	}
+
+	@Override
+	public void onPinchZoomFinished(PinchZoomDetector pPinchZoomDetector,
+			TouchEvent pTouchEvent, float pZoomFactor) {
+		
 	}
 
 }
